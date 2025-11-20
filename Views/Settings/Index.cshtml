@@ -1,0 +1,237 @@
+@model SystemSettings
+@{
+    ViewData["Title"] = "System Settings";
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] h5:not(.card h5),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-check-input,
+    [data-theme="dark"] .card .form-label,
+    [data-theme="dark"] .card .form-check-label {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #d1d5db !important;
+    }
+    
+    [data-theme="dark"] .card .text-danger {
+        color: #dc2626 !important;
+    }
+</style>
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="fas fa-cog"></i> System Settings</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-action="Index" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <h5 class="mb-3">General Settings</h5>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="SiteName" class="form-label"></label>
+                        <input asp-for="SiteName" class="form-control" />
+                        <span asp-validation-for="SiteName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SiteEmail" class="form-label"></label>
+                        <input asp-for="SiteEmail" type="email" class="form-control" />
+                        <span asp-validation-for="SiteEmail" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <h5 class="mb-3 mt-4">Support Settings</h5>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="SupportPhone" class="form-label"></label>
+                        <input asp-for="SupportPhone" type="tel" class="form-control" />
+                        <span asp-validation-for="SupportPhone" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SupportEmail" class="form-label"></label>
+                        <input asp-for="SupportEmail" type="email" class="form-control" />
+                        <span asp-validation-for="SupportEmail" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <h5 class="mb-3 mt-4">System Options</h5>
+                <div class="mb-3 form-check">
+                    <input asp-for="MaintenanceMode" class="form-check-input" type="checkbox" />
+                    <label asp-for="MaintenanceMode" class="form-check-label"></label>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="AllowRegistration" class="form-check-input" type="checkbox" />
+                    <label asp-for="AllowRegistration" class="form-check-label"></label>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="RequireEmailVerification" class="form-check-input" type="checkbox" />
+                    <label asp-for="RequireEmailVerification" class="form-check-label"></label>
+                </div>
+
+                <hr class="my-4" />
+
+                <h5 class="mb-3">Email Configuration (SMTP)</h5>
+                <div class="alert alert-info">
+                    <strong><i class="fas fa-info-circle"></i> Email Setup Instructions:</strong>
+                    <ol class="mb-0 mt-2">
+                        <li>For Gmail: Enable 2-factor authentication on your Gmail account</li>
+                        <li>Generate an App Password at: <a href="https://myaccount.google.com/apppasswords" target="_blank">https://myaccount.google.com/apppasswords</a></li>
+                        <li>Use the App Password (not your regular password) in the SMTP Password field below</li>
+                        <li>Click "Test Email" after saving to verify your configuration</li>
+                    </ol>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="SmtpServer" class="form-label"></label>
+                        <input asp-for="SmtpServer" class="form-control" placeholder="smtp.gmail.com" />
+                        <span asp-validation-for="SmtpServer" class="text-danger"></span>
+                        <small class="text-muted">Default: smtp.gmail.com</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SmtpPort" class="form-label"></label>
+                        <input asp-for="SmtpPort" class="form-control" placeholder="587" />
+                        <span asp-validation-for="SmtpPort" class="text-danger"></span>
+                        <small class="text-muted">Default: 587 (Gmail uses 587)</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="SmtpUsername" class="form-label"></label>
+                        <input asp-for="SmtpUsername" type="email" class="form-control" placeholder="your-email@gmail.com" />
+                        <span asp-validation-for="SmtpUsername" class="text-danger"></span>
+                        <small class="text-muted">Your Gmail address</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SmtpPassword" class="form-label"></label>
+                        <input asp-for="SmtpPassword" type="password" class="form-control" placeholder="Your App Password" />
+                        <span asp-validation-for="SmtpPassword" class="text-danger"></span>
+                        <small class="text-muted">Gmail App Password (not your regular password)</small>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="FromEmail" class="form-label"></label>
+                        <input asp-for="FromEmail" type="email" class="form-control" placeholder="noreply@carrental.com" />
+                        <span asp-validation-for="FromEmail" class="text-danger"></span>
+                        <small class="text-muted">Email address that appears as sender</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="FromName" class="form-label"></label>
+                        <input asp-for="FromName" class="form-control" placeholder="Car Rental System" />
+                        <span asp-validation-for="FromName" class="text-danger"></span>
+                        <small class="text-muted">Display name for emails</small>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Save Email Settings
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-lg" id="testEmailBtn">
+                        <i class="fas fa-paper-plane"></i> Test Email Configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const testEmailBtn = document.getElementById('testEmailBtn');
+            if (testEmailBtn) {
+                testEmailBtn.addEventListener('click', function() {
+                    const testEmail = prompt('Enter an email address to send a test email to:');
+                    if (testEmail && testEmail.trim()) {
+                        // Validate email format (simple check)
+                        const emailStr = testEmail.trim();
+                        const atChar = String.fromCharCode(64);
+                        const atIndex = emailStr.indexOf(atChar);
+                        const dotIndex = emailStr.indexOf('.');
+                        const hasAt = atIndex !== -1 && atIndex !== 0;
+                        const hasDot = dotIndex !== -1 && dotIndex > atIndex;
+                        const hasValidLength = emailStr.length > 5;
+                        const hasValidFormat = hasAt && hasDot && hasValidLength;
+                        if (!hasValidFormat) {
+                            alert('Please enter a valid email address.');
+                            return;
+                        }
+
+                        testEmailBtn.disabled = true;
+                        testEmailBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Testing...';
+
+                        fetch('/Settings/TestEmail', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                            },
+                            body: JSON.stringify({ testEmail: testEmail.trim() })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('✅ ' + data.message);
+                            } else {
+                                alert('❌ ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('❌ Error testing email: ' + error.message);
+                        })
+                        .finally(() => {
+                            testEmailBtn.disabled = false;
+                            testEmailBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Test Email Configuration';
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+}
+

@@ -1,0 +1,201 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Booking Calendar - DriveLuxe";
+    var appointments = ViewBag.Appointments as List<Appointment> ?? new List<Appointment>();
+}
+
+@section Styles {
+<link href="https://cdn.jsdelivr.net/npm/@@fullcalendar/core@6.1.10/main.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@@fullcalendar/daygrid@6.1.10/main.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/@@fullcalendar/timegrid@6.1.10/main.min.css" rel="stylesheet" />
+<style>
+    :root {
+        --primary: #135bec;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+
+    .fc {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .fc-toolbar-title {
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+        color: #1f2937;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] .fc-toolbar-title,
+    [data-theme="dark"] * {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .fc {
+        background: var(--bg-secondary, #1f2937) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .fc-event {
+        background: var(--primary, #135bec) !important;
+        border-color: var(--primary, #135bec) !important;
+    }
+
+    .fc-button-primary {
+        background-color: var(--primary) !important;
+        border-color: var(--primary) !important;
+    }
+
+    .fc-button-primary:hover {
+        background-color: #0d4ab8 !important;
+        border-color: #0d4ab8 !important;
+    }
+
+    .fc-event {
+        border-radius: 0.5rem;
+        padding: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .status-pending {
+        background-color: var(--warning) !important;
+        border-color: var(--warning) !important;
+    }
+
+    .status-confirmed {
+        background-color: var(--success) !important;
+        border-color: var(--success) !important;
+    }
+
+    .status-completed {
+        background-color: var(--info) !important;
+        border-color: var(--info) !important;
+    }
+
+    .legend {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .legend-color {
+        width: 1rem;
+        height: 1rem;
+        border-radius: 0.25rem;
+    }
+</style>
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">
+                <span class="material-symbols-outlined me-2" style="vertical-align: middle;">calendar_month</span>
+                Booking Calendar
+            </h2>
+            <p class="text-muted mb-0 small mt-1">Visual overview of all bookings</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Orders" class="btn btn-outline-primary rounded-2">
+                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">list</span>
+                List View
+            </a>
+            <a asp-action="Dashboard" class="btn btn-outline-secondary rounded-2">
+                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">dashboard</span>
+                Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--warning);"></div>
+                    <span class="small fw-medium">Pending</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--success);"></div>
+                    <span class="small fw-medium">Confirmed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--info);"></div>
+                    <span class="small fw-medium">Completed</span>
+                </div>
+            </div>
+
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/@@fullcalendar/core@6.1.10/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@@fullcalendar/daygrid@6.1.10/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@@fullcalendar/timegrid@6.1.10/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@@fullcalendar/interaction@6.1.10/main.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: function(fetchInfo, successCallback, failureCallback) {
+                fetch('/Staff/GetCalendarEvents?start=' + fetchInfo.startStr + '&end=' + fetchInfo.endStr)
+                    .then(response => response.json())
+                    .then(data => {
+                        var events = data.map(function(item) {
+                            return {
+                                id: item.id,
+                                title: item.title,
+                                start: item.start,
+                                end: item.end,
+                                backgroundColor: item.color,
+                                borderColor: item.color,
+                                extendedProps: {
+                                    status: item.status
+                                }
+                            };
+                        });
+                        successCallback(events);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching calendar events:', error);
+                        failureCallback(error);
+                    });
+            },
+            eventClick: function(info) {
+                window.location.href = '/Staff/OrderDetails/' + info.event.id;
+            },
+            eventMouseEnter: function(info) {
+                info.el.style.cursor = 'pointer';
+            }
+        });
+        
+        calendar.render();
+    });
+</script>
+}
+

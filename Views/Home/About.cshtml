@@ -1,0 +1,121 @@
+@{
+    ViewData["Title"] = "About Us";
+}
+
+@section Styles {
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, rgba(19, 91, 236, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+    
+    .about-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .about-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers remain light */
+    [data-theme="dark"] h1:not(.about-card h1),
+    [data-theme="dark"] h3:not(.about-card h3),
+    [data-theme="dark"] h5:not(.about-card h5),
+    [data-theme="dark"] p:not(.about-card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .about-card {
+        background-color: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .about-card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .about-card .text-muted {
+        color: #6b7280 !important;
+    }
+</style>
+}
+
+<div class="about-hero">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">About DriveLuxe</h1>
+        <p class="lead">Your trusted partner for premium car rentals</p>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="about-card card-3d">
+                <h3 class="mb-3">
+                    <span class="material-symbols-outlined me-2" style="font-size: 2rem; color: var(--primary);">target</span>
+                    Our Mission
+                </h3>
+                <p class="mb-0">We are committed to providing exceptional car rental services with a focus on sustainability through our electric vehicle fleet. Our goal is to make premium mobility accessible to everyone while protecting our environment.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="about-card card-3d">
+                <h3 class="mb-3">
+                    <span class="material-symbols-outlined me-2" style="font-size: 2rem; color: var(--primary);">star</span>
+                    Why Choose Us
+                </h3>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><span class="material-symbols-outlined me-2 text-success">check_circle</span>Wide selection of vehicles including premium EVs</li>
+                    <li class="mb-2"><span class="material-symbols-outlined me-2 text-success">check_circle</span>Flexible subscription plans</li>
+                    <li class="mb-2"><span class="material-symbols-outlined me-2 text-success">check_circle</span>Competitive pricing with regular promotions</li>
+                    <li class="mb-2"><span class="material-symbols-outlined me-2 text-success">check_circle</span>24/7 customer support</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="about-card card-3d">
+                <div class="text-center mb-3">
+                    <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--primary);">directions_car</span>
+                </div>
+                <h5 class="text-center mb-3">Premium Fleet</h5>
+                <p class="text-center text-muted">Choose from our extensive collection of luxury and electric vehicles</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="about-card card-3d">
+                <div class="text-center mb-3">
+                    <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--primary);">eco</span>
+                </div>
+                <h5 class="text-center mb-3">Sustainable</h5>
+                <p class="text-center text-muted">Leading the way with our eco-friendly electric vehicle options</p>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="about-card card-3d">
+                <div class="text-center mb-3">
+                    <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--primary);">support_agent</span>
+                </div>
+                <h5 class="text-center mb-3">24/7 Support</h5>
+                <p class="text-center text-muted">Round-the-clock assistance whenever you need us</p>
+            </div>
+        </div>
+    </div>
+</div>
+

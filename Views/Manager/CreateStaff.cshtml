@@ -1,0 +1,98 @@
+@model CreateStaffViewModel
+@{
+    ViewData["Title"] = "Add Staff";
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-label {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #d1d5db !important;
+    }
+    
+    [data-theme="dark"] .card .text-danger {
+        color: #dc2626 !important;
+    }
+</style>
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="fas fa-user-plus"></i> Add New Staff</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-action="CreateStaff" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FirstName" class="form-label">First Name</label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="LastName" class="form-label">Last Name</label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email" class="form-control" type="email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <input asp-for="Password" class="form-control" type="password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                    <input asp-for="PhoneNumber" class="form-control" type="tel" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Create Staff
+                    </button>
+                    <a asp-action="StaffManagement" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

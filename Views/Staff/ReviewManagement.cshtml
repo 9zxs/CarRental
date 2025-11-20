@@ -1,0 +1,205 @@
+@model IEnumerable<Review>
+@{
+    ViewData["Title"] = "Review Management - DriveLuxe";
+    var stats = ViewBag.Stats as dynamic;
+    var status = ViewBag.Status as string ?? "All";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+    }
+    
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.card h1),
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .review-card,
+    [data-theme="dark"] .card {
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .review-card *,
+    [data-theme="dark"] .card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .review-card .text-muted,
+    [data-theme="dark"] .card .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    .review-card {
+        border: none;
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .review-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .rating-stars {
+        color: #fbbf24;
+    }
+</style>
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1 fw-bold">Review Management</h1>
+            <p class="text-muted mb-0">Moderate customer reviews</p>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center p-4 border-0 shadow-sm">
+                <h3 class="text-primary mb-2">@(stats?.TotalReviews ?? 0)</h3>
+                <p class="text-muted mb-0">Total Reviews</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-4 border-0 shadow-sm">
+                <h3 class="text-warning mb-2">@(stats?.PendingReviews ?? 0)</h3>
+                <p class="text-muted mb-0">Pending</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-4 border-0 shadow-sm">
+                <h3 class="text-success mb-2">@(stats?.ApprovedReviews ?? 0)</h3>
+                <p class="text-muted mb-0">Approved</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center p-4 border-0 shadow-sm">
+                <h3 class="text-info mb-2">@(stats?.AverageRating?.ToString("F1") ?? "0.0")</h3>
+                <p class="text-muted mb-0">Avg Rating</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card shadow-sm mb-4 border-0" style="border-radius: 1rem;">
+        <div class="card-body p-3">
+            <div class="btn-group" role="group">
+                <a asp-action="ReviewManagement" asp-route-status="" 
+                   class="btn @(status == "All" ? "btn-primary" : "btn-outline-primary")">
+                    All Reviews
+                </a>
+                <a asp-action="ReviewManagement" asp-route-status="Pending" 
+                   class="btn @(status == "Pending" ? "btn-warning" : "btn-outline-warning")">
+                    Pending (@(stats?.PendingReviews ?? 0))
+                </a>
+                <a asp-action="ReviewManagement" asp-route-status="Approved" 
+                   class="btn @(status == "Approved" ? "btn-success" : "btn-outline-success")">
+                    Approved
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review List -->
+    <div class="row g-4">
+        @foreach (var review in Model)
+        {
+            <div class="col-md-6">
+                <div class="review-card card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">
+                                    @(review.User?.FirstName + " " + review.User?.LastName ?? "Anonymous")
+                                </h6>
+                                <p class="text-muted small mb-0">
+                                    <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">directions_car</span>
+                                    <a asp-controller="Cars" asp-action="Details" asp-route-id="@review.CarId" class="text-decoration-none">
+                                        @review.Car?.DisplayName
+                                    </a>
+                                </p>
+                            </div>
+                            <span class="badge @(review.IsApproved ? "bg-success" : "bg-warning")">
+                                @(review.IsApproved ? "Approved" : "Pending")
+                            </span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="rating-stars">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span class="material-symbols-outlined" 
+                                          style="font-size: 20px; @(i <= review.Rating ? "font-variation-settings: 'FILL' 1;" : "")">star</span>
+                                }
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(review.Comment))
+                        {
+                            <p class="mb-3">@review.Comment</p>
+                        }
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">schedule</span>
+                                @review.CreatedAt.ToString("MMM dd, yyyy")
+                            </small>
+                            
+                            @if (!review.IsApproved)
+                            {
+                                <div class="btn-group btn-group-sm">
+                                    <form asp-action="ApproveReview" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reviewId" value="@review.Id" />
+                                        <button type="submit" class="btn btn-success">
+                                            <span class="material-symbols-outlined me-1" style="font-size: 16px; vertical-align: middle;">check_circle</span>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <form asp-action="RejectReview" method="post" class="d-inline" 
+                                          onsubmit="return confirm('Are you sure you want to reject and delete this review?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reviewId" value="@review.Id" />
+                                        <button type="submit" class="btn btn-danger">
+                                            <span class="material-symbols-outlined me-1" style="font-size: 16px; vertical-align: middle;">close</span>
+                                            Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <span class="material-symbols-outlined mb-2" style="font-size: 3rem;">rate_review</span>
+            <h4>No reviews found</h4>
+            <p>@(status == "Pending" ? "No pending reviews at the moment." : "No reviews match your filter.")</p>
+        </div>
+    }
+</div>
+

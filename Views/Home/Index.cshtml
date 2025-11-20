@@ -1,0 +1,682 @@
+@model dynamic
+@{
+    ViewData["Title"] = "DriveLuxe - Generative Experience";
+    var evCars = ViewBag.EVCars as List<Car> ?? new List<Car>();
+    var promotions = ViewBag.Promotions as List<Promotion> ?? new List<Promotion>();
+    var states = ViewBag.States as List<string> ?? new List<string>();
+    var selectedState = ViewBag.SelectedState as string;
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --primary-dark: #0d4ab8;
+        --secondary: #9CA3AF;
+        --dark: #030712;
+        --light: #F9FAFB;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: var(--light);
+        color: #333;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* Dark mode override for homepage */
+    [data-theme="dark"] body {
+        background-color: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .hero-section {
+        background: linear-gradient(135deg, rgba(19, 91, 236, 0.2) 0%, rgba(3, 7, 18, 1) 100%) !important;
+    }
+    
+    [data-theme="dark"] .category-card {
+        background: rgba(31, 41, 55, 0.5) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.category-card h1):not(.car-card h1):not(.promotion-card h1):not(.hero-section h1),
+    [data-theme="dark"] h2:not(.category-card h2):not(.car-card h2):not(.promotion-card h2),
+    [data-theme="dark"] p:not(.category-card p):not(.car-card p):not(.promotion-card p):not(.hero-section p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Category cards use semi-transparent backgrounds in dark mode */
+    [data-theme="dark"] .category-card * {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Car cards and promotion cards in sections should have white backgrounds with dark text */
+    [data-theme="dark"] .car-card {
+        background: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .car-card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .car-card .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Promotion cards use overlay - keep white text */
+    [data-theme="dark"] .promotion-card,
+    [data-theme="dark"] .promotion-card * {
+        color: white !important;
+    }
+    
+    /* Keep white text on colored backgrounds */
+    [data-theme="dark"] .hero-section,
+    [data-theme="dark"] .hero-section *,
+    [data-theme="dark"] .promotion-banner,
+    [data-theme="dark"] .promotion-banner *,
+    [data-theme="dark"] .location-card-overlay,
+    [data-theme="dark"] .location-card-overlay * {
+        color: white !important;
+    }
+
+    .hero-section {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(19, 91, 236, 0.1) 0%, rgba(3, 7, 18, 0.9) 100%);
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+        opacity: 0.5;
+        z-index: -1;
+    }
+
+    #particle-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(3rem, 10vw, 6rem);
+        font-weight: 700;
+        line-height: 0.9;
+        letter-spacing: -0.05em;
+        color: white;
+        text-shadow: 0 0 30px rgba(19, 91, 236, 0.5);
+    }
+
+    .search-interface {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+    }
+
+    .search-interface input,
+    .search-interface select {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        height: 60px;
+    }
+
+    .search-interface input::placeholder,
+    .search-interface select option {
+        color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    .search-interface input:focus,
+    .search-interface select:focus {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: var(--primary) !important;
+        color: white !important;
+        box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.2) !important;
+    }
+
+    .btn-engage {
+        background: var(--primary);
+        color: white;
+        border: none;
+        height: 60px;
+        font-weight: 700;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-engage:hover {
+        background: #2563EB;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+        color: white;
+    }
+
+    .category-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 2rem;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .category-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.25), transparent 70%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .category-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 0 40px rgba(19, 91, 236, 0.2);
+        border-color: rgba(19, 91, 236, 0.5);
+    }
+
+    .category-card:hover::before {
+        opacity: 1;
+    }
+
+    .category-card .material-symbols-outlined {
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .category-card:hover .material-symbols-outlined {
+        color: var(--primary);
+        transform: scale(1.1);
+    }
+
+    .location-card {
+        position: relative;
+        border-radius: 1rem;
+        overflow: hidden;
+        aspect-ratio: 1;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .location-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 0 50px rgba(59, 130, 246, 0.25);
+    }
+
+    .location-card img {
+        transition: transform 0.5s ease;
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+    }
+
+    .location-card:hover img {
+        transform: scale(1.1);
+    }
+
+    .location-card-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(3, 7, 18, 0.9) 20%, rgba(3, 7, 18, 0) 70%);
+        padding: 2rem;
+        color: white;
+    }
+
+    .promotion-card {
+        position: relative;
+        border-radius: 1rem;
+        overflow: hidden;
+        min-height: 400px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .promotion-card img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.3;
+        z-index: -1;
+    }
+
+    .promotion-card .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to top, rgba(3, 7, 18, 0.8) 0%, rgba(3, 7, 18, 0.4) 70%);
+    }
+
+    .promotion-card .content {
+        position: relative;
+        z-index: 1;
+        padding: 2rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        color: white;
+    }
+
+    .section-title {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-weight: 700;
+        color: white;
+    }
+</style>
+}
+
+<section class="hero-section">
+    <canvas id="particle-canvas"></canvas>
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-8 mx-auto text-center text-white">
+                <h1 class="hero-title mb-4" data-parallax="0.5">Interface: Redefined</h1>
+                <p class="lead mb-5 fs-4 text-white-50">A paradigm shift in vehicle acquisition. Experience seamless, intuitive booking.</p>
+                
+                <div class="search-interface mb-4">
+                    <form asp-controller="Cars" asp-action="Index" method="get" id="homeSearchForm" class="row g-3">
+                        <div class="col-md-4">
+                            <div class="position-relative">
+                                <span class="material-symbols-outlined position-absolute top-50 start-0 translate-middle-y ms-3" style="color: rgba(255,255,255,0.5); z-index: 10;">travel_explore</span>
+                                <input name="searchQuery" id="homeSearchInput" type="text" class="form-control ps-5" placeholder="Search by brand, model, city, state, year..." value="@ViewBag.SearchQuery" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="position-relative">
+                                <span class="material-symbols-outlined position-absolute top-50 start-0 translate-middle-y ms-3" style="color: rgba(255,255,255,0.5); z-index: 10;">location_on</span>
+                                <select name="state" id="homeStateFilter" class="form-select ps-5">
+                                    <option value="">All States</option>
+                                    @foreach (var state in states)
+                                    {
+                                        @if (state == selectedState)
+                                        {
+                                            <option value="@state" selected>@state</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@state">@state</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="position-relative">
+                                <span class="material-symbols-outlined position-absolute top-50 start-0 translate-middle-y ms-3" style="color: rgba(255,255,255,0.5); z-index: 10;">category</span>
+                                <select name="categoryId" id="homeCategoryFilter" class="form-select ps-5">
+                                    <option value="">All Categories</option>
+                                    @{
+                                        var categories = ViewBag.Categories as List<Category> ?? new List<Category>();
+                                    }
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.Id">@category.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="position-relative">
+                                <span class="material-symbols-outlined position-absolute top-50 start-0 translate-middle-y ms-3" style="color: rgba(255,255,255,0.5); z-index: 10;">event</span>
+                                <input name="startDate" id="homeStartDateInput" type="date" class="form-control ps-5" placeholder="Start" value="@ViewBag.StartDate" />
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="position-relative">
+                                <span class="material-symbols-outlined position-absolute top-50 start-0 translate-middle-y ms-3" style="color: rgba(255,255,255,0.5); z-index: 10;">history</span>
+                                <input name="endDate" id="homeEndDateInput" type="date" class="form-control ps-5" placeholder="End" value="@ViewBag.EndDate" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-engage w-100">
+                                <span class="material-symbols-outlined me-2">send</span>
+                                Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a asp-controller="Cars" asp-action="Index" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                        <span class="material-symbols-outlined me-2">directions_car</span>
+                        Browse Fleet
+                    </a>
+                    <a asp-controller="EVHub" asp-action="Index" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                        <span class="material-symbols-outlined me-2">electric_bolt</span>
+                        EV Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5" style="background: var(--dark);">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="section-title mb-3">Browse by Category</h2>
+            <p class="text-white-50 fs-5">Select a vehicle class that aligns with your mission parameters. Each category is engineered for a specific experience.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-3">
+                <a asp-controller="Cars" asp-action="Index" asp-route-categoryId="1" class="text-decoration-none">
+                    <div class="category-card text-white card-3d">
+                        <span class="material-symbols-outlined">diamond</span>
+                        <h3 class="text-white mb-3">Luxury</h3>
+                        <p class="text-white-50 mb-3">Command the pinnacle of automotive engineering and comfort.</p>
+                        <div class="d-flex align-items-center" style="color: var(--primary);">
+                            <span class="fw-semibold">Explore</span>
+                            <span class="material-symbols-outlined ms-2">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a asp-controller="Cars" asp-action="Index" asp-route-categoryId="2" class="text-decoration-none">
+                    <div class="category-card text-white card-3d">
+                        <span class="material-symbols-outlined">terrain</span>
+                        <h3 class="text-white mb-3">SUV</h3>
+                        <p class="text-white-50 mb-3">Versatility and power for any terrain or transport need.</p>
+                        <div class="d-flex align-items-center" style="color: var(--primary);">
+                            <span class="fw-semibold">Explore</span>
+                            <span class="material-symbols-outlined ms-2">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a asp-controller="EVHub" asp-action="Index" class="text-decoration-none">
+                    <div class="category-card text-white card-3d">
+                        <span class="material-symbols-outlined">electric_bolt</span>
+                        <h3 class="text-white mb-3">Electric</h3>
+                        <p class="text-white-50 mb-3">Experience the silent, instant torque of our EV fleet.</p>
+                        <div class="d-flex align-items-center" style="color: var(--primary);">
+                            <span class="fw-semibold">Explore</span>
+                            <span class="material-symbols-outlined ms-2">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a asp-controller="Cars" asp-action="Index" asp-route-categoryId="3" class="text-decoration-none">
+                    <div class="category-card text-white card-3d">
+                        <span class="material-symbols-outlined">local_gas_station</span>
+                        <h3 class="text-white mb-3">Economy</h3>
+                        <p class="text-white-50 mb-3">Efficient and agile vehicles for optimized urban navigation.</p>
+                        <div class="d-flex align-items-center" style="color: var(--primary);">
+                            <span class="fw-semibold">Explore</span>
+                            <span class="material-symbols-outlined ms-2">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5" style="background: rgba(3, 7, 18, 0.9);">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="section-title mb-3">Popular Service Corridors</h2>
+            <p class="text-white-50 fs-5">Access our fleet from major operational hubs. Each location is a gateway to your next journey.</p>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var state in states.Take(3))
+            {
+                <div class="col-md-4">
+                    <a asp-controller="Cars" asp-action="Index" asp-route-state="@state" class="text-decoration-none">
+                        <div class="location-card card-3d">
+                            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800" alt="@state" />
+                            <div class="location-card-overlay">
+                                <h3 class="fw-bold fs-2 mb-2" style="font-family: 'Playfair Display', serif;">@state</h3>
+                                <p class="text-white-50 mb-3">Premium service hub</p>
+                                <div class="d-flex align-items-center" style="color: var(--primary);">
+                                    <span class="fw-semibold">Initiate Search</span>
+                                    <span class="material-symbols-outlined ms-2">east</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@if (promotions.Any())
+{
+    <section class="py-5" style="background: var(--dark);">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h2 class="section-title mb-3">Events & Promotions</h2>
+                <p class="text-white-50 fs-5">Exclusive offers and seasonal directives. Seize the opportunity to enhance your experience.</p>
+            </div>
+
+            <div class="row g-4">
+                @foreach (var promotion in promotions.Take(3))
+                {
+                    <div class="col-md-4">
+                        <div class="promotion-card card-3d">
+                            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800" alt="@promotion.Name" />
+                            <div class="overlay"></div>
+                            <div class="content">
+                                <h3 class="fw-bold fs-3 mb-3" style="font-family: 'Playfair Display', serif;">@promotion.Name</h3>
+                                <p class="text-white-50 mb-3">@promotion.Description</p>
+                                <div class="mb-3">
+                                    <span class="display-4 fw-bold text-primary">@promotion.DiscountPercentage%</span>
+                                    <span class="text-white-50 ms-2">OFF</span>
+                                </div>
+                                <code class="bg-white bg-opacity-10 px-3 py-2 rounded d-block mb-3">@promotion.Code</code>
+                                <a asp-controller="Cars" asp-action="Index" class="btn btn-primary rounded-pill px-4 w-100 w-md-auto" style="background: var(--primary);">
+                                    <span>Book Now</span>
+                                    <span class="material-symbols-outlined ms-2">arrow_forward</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@if (evCars.Any())
+{
+    <section class="py-5" style="background: rgba(3, 7, 18, 0.8);">
+        <div class="container py-5">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <span class="badge px-3 py-2 mb-3" style="background: rgba(19, 91, 236, 0.1); color: var(--primary);">
+                        <span class="material-symbols-outlined me-2">eco</span>
+                        Sustainability Commitment
+                    </span>
+                    <h2 class="section-title mb-4">Powering a Cleaner Tomorrow</h2>
+                    <p class="text-white-50 fs-5 mb-4">We are dedicated to minimizing our ecological footprint. A significant majority of our fleet consists of all-electric vehicles, supported by a network of high-speed charging stations.</p>
+                    <a asp-controller="EVHub" asp-action="Index" class="btn btn-outline-primary btn-lg rounded-pill px-4" style="color: var(--primary); border-color: var(--primary);">
+                        <span>Learn About Our Initiatives</span>
+                        <span class="material-symbols-outlined ms-2">arrow_forward</span>
+                    </a>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row g-3">
+                        @foreach (var car in evCars.Take(4))
+                        {
+                            <div class="col-6">
+                                <div class="rounded overflow-hidden" style="border: 1px solid rgba(255,255,255,0.1); aspect-ratio: 1;">
+                                    <img src="@(car.ImageUrl ?? "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400")" 
+                                         alt="@car.DisplayName" 
+                                         class="w-100 h-100 object-fit-cover" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script src="~/js/homepage.js" asp-append-version="true"></script>
+    <script>
+    // Particle canvas animation (backup)
+    const canvas = document.getElementById('particle-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const particles = [];
+        const particleCount = 50;
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2 + 1,
+                speedX: Math.random() * 0.5 - 0.25,
+                speedY: Math.random() * 0.5 - 0.25,
+                opacity: Math.random() * 0.5 + 0.2
+            });
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#030712';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(particle => {
+                particle.x += particle.speedX;
+                particle.y += particle.speedY;
+
+                if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
+                if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
+
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(19, 91, 236, ${particle.opacity})`;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    }
+    </script>
+
+    <script>
+        // Auto-submit on change - no need to click search button
+        (function() {
+            const searchInput = document.getElementById('homeSearchInput');
+            const stateFilter = document.getElementById('homeStateFilter');
+            const categoryFilter = document.getElementById('homeCategoryFilter');
+            const endDateInput = document.getElementById('homeEndDateInput');
+            const searchForm = document.getElementById('homeSearchForm');
+
+            // Search on Enter key or blur (lose focus)
+            if (searchInput && searchForm) {
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchForm.submit();
+                    }
+                });
+                searchInput.addEventListener('blur', function() {
+                    searchForm.submit();
+                });
+            }
+
+            // Auto-submit when filters change - immediate, no delay
+            if (stateFilter) {
+                stateFilter.addEventListener('change', function() {
+                    searchForm.submit();
+                });
+            }
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', function() {
+                    searchForm.submit();
+                });
+            }
+            
+            // Date inputs - submit on change when both dates are selected
+            const startDateInput = document.getElementById('homeStartDateInput');
+            const endDateInput = document.getElementById('homeEndDateInput');
+            
+            if (startDateInput) {
+                startDateInput.addEventListener('change', function() {
+                    const startDate = this.value;
+                    const endDate = endDateInput?.value || '';
+                    
+                    if (startDate && endDate) {
+                        if (new Date(startDate) >= new Date(endDate)) {
+                            alert('Start date must be before end date!');
+                            this.focus();
+                            return;
+                        }
+                        searchForm.submit();
+                    }
+                });
+            }
+            
+            if (endDateInput) {
+                endDateInput.addEventListener('change', function() {
+                    const startDate = startDateInput?.value || '';
+                    const endDate = this.value;
+                    
+                    if (startDate && endDate) {
+                        if (new Date(startDate) >= new Date(endDate)) {
+                            alert('Start date must be before end date!');
+                            this.focus();
+                            return;
+                        }
+                        searchForm.submit();
+                    }
+                });
+            }
+        })();
+    </script>
+}

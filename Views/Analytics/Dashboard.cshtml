@@ -1,0 +1,415 @@
+@{
+    ViewData["Title"] = "Analytics Dashboard - DriveLuxe";
+    var analytics = ViewBag.Analytics as dynamic;
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --primary-dark: #0d4ab8;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #06b6d4;
+        --purple: #8b5cf6;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+
+    .stat-card.primary::before { background: linear-gradient(90deg, var(--primary), #2563eb); }
+    .stat-card.success::before { background: linear-gradient(90deg, var(--success), #059669); }
+    .stat-card.info::before { background: linear-gradient(90deg, var(--info), #0891b2); }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .chart-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: white;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+        padding: 1rem;
+    }
+
+    .table-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: white;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.stat-card h1):not(.chart-card h1):not(.table-card h1),
+    [data-theme="dark"] h2:not(.stat-card h2):not(.chart-card h2):not(.table-card h2),
+    [data-theme="dark"] h3:not(.stat-card h3):not(.chart-card h3):not(.table-card h3),
+    [data-theme="dark"] h4:not(.stat-card h4):not(.chart-card h4):not(.table-card h4),
+    [data-theme="dark"] h5:not(.stat-card h5):not(.chart-card h5):not(.table-card h5),
+    [data-theme="dark"] p:not(.stat-card p):not(.chart-card p):not(.table-card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .stat-card,
+    [data-theme="dark"] .chart-card,
+    [data-theme="dark"] .table-card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .card-header,
+    [data-theme="dark"] .table-responsive,
+    [data-theme="dark"] .table,
+    [data-theme="dark"] .table-light,
+    [data-theme="dark"] .table thead,
+    [data-theme="dark"] .table tbody {
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card-header.bg-white {
+        background-color: white !important;
+    }
+    
+    [data-theme="dark"] .stat-card *,
+    [data-theme="dark"] .chart-card *,
+    [data-theme="dark"] .table-card *,
+    [data-theme="dark"] .table th,
+    [data-theme="dark"] .table td,
+    [data-theme="dark"] .table-light th,
+    [data-theme="dark"] .table-light td {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .stat-card .stat-label,
+    [data-theme="dark"] .chart-card .stat-label,
+    [data-theme="dark"] .table-card .stat-label,
+    [data-theme="dark"] .stat-label {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .counter {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .table .text-muted,
+    [data-theme="dark"] .table td.text-muted,
+    [data-theme="dark"] .table td.text-center.text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .text-muted:not(.hero-section .text-muted):not(.promotion-header .text-muted) {
+        color: #6b7280 !important;
+    }
+</style>
+}
+
+<div class="container py-5 page-transition">
+    <div class="d-flex justify-content-between align-items-center mb-5 fade-in">
+        <div>
+            <h1 class="mb-1 fw-bold" style="font-size: 2.5rem;">
+                <span class="material-symbols-outlined text-primary me-2" style="font-size: 2rem; vertical-align: middle;">analytics</span>
+                Analytics Dashboard
+            </h1>
+            <p class="text-muted mb-0">Comprehensive data insights and trends</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4 stagger-item">
+            <div class="stat-card primary h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <p class="stat-label mb-2">Today's Revenue</p>
+                            <h2 class="counter mb-0" data-target="@(Math.Round((double)(analytics?.Revenue?.Today ?? 0), 0))">0</h2>
+                        </div>
+                        <span class="material-symbols-outlined text-primary" style="font-size: 3rem;">today</span>
+                    </div>
+                    <small class="text-muted">RM @(analytics?.Revenue?.Today?.ToString("N2") ?? "0.00")</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 stagger-item">
+            <div class="stat-card success h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <p class="stat-label mb-2">This Month Revenue</p>
+                            <h2 class="counter mb-0" data-target="@(Math.Round((double)(analytics?.Revenue?.ThisMonth ?? 0), 0))">0</h2>
+                        </div>
+                        <span class="material-symbols-outlined text-success" style="font-size: 3rem;">payments</span>
+                    </div>
+                    @{
+                        var monthDiff = (analytics?.Revenue?.ThisMonth ?? 0) - (analytics?.Revenue?.LastMonth ?? 0);
+                        var isPositive = monthDiff >= 0;
+                    }
+                    <small class="@(isPositive ? "text-success" : "text-danger")">
+                        <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">@(isPositive ? "trending_up" : "trending_down")</span>
+                        RM @(Math.Abs(monthDiff).ToString("N2")) vs last month
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 stagger-item">
+            <div class="stat-card info h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <p class="stat-label mb-2">Total Bookings</p>
+                            <h2 class="counter mb-0" data-target="@(analytics?.Bookings?.ThisMonth ?? 0)">0</h2>
+                        </div>
+                        <span class="material-symbols-outlined text-info" style="font-size: 3rem;">event_available</span>
+                    </div>
+                    <small class="text-muted">This month bookings</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-8 fade-in">
+            <div class="chart-card">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">show_chart</span>
+                        Revenue Trend
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 fade-in">
+            <div class="chart-card">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-success">pie_chart</span>
+                        Booking Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="bookingsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 fade-in">
+        <div class="col-md-12">
+            <div class="table-card">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">directions_car</span>
+                        Top 5 Most Rented Cars
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Vehicle</th>
+                                    <th>Bookings</th>
+                                    <th>Revenue</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (analytics?.TopCars != null)
+                                {
+                                    int rank = 1;
+                                    foreach (var car in analytics.TopCars)
+                                    {
+                                        <tr class="stagger-item">
+                                            <td>
+                                                <span class="badge bg-primary">#@rank</span>
+                                            </td>
+                                            <td>
+                                                <strong>@car.Car</strong>
+                                            </td>
+                                            <td>
+                                                <span class="fw-semibold">@car.Count</span>
+                                                <small class="text-muted"> bookings</small>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold text-success">RM @car.Revenue.ToString("N2")</span>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var topCarsList = analytics?.TopCars as System.Collections.IEnumerable;
+                                                    int maxCount = 0;
+                                                    if (topCarsList != null)
+                                                    {
+                                                        foreach (dynamic c in topCarsList)
+                                                        {
+                                                            if (c.Count > maxCount)
+                                                                maxCount = c.Count;
+                                                        }
+                                                    }
+                                                    var percentage = maxCount > 0 ? (car.Count * 100) / maxCount : 0;
+                                                }
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar bg-success" style="width: @percentage%"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        rank++;
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-5">No data available</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script>
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart');
+        if (revenueCtx) {
+            const revenueData = @Html.Raw(Json.Serialize(analytics?.RevenueByDay ?? new object[0]));
+            
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: revenueData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+                    datasets: [{
+                        label: 'Revenue (RM)',
+                        data: revenueData.map(d => d.revenue),
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'RM ' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'RM ' + value.toLocaleString();
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Bookings Chart
+        const bookingsCtx = document.getElementById('bookingsChart');
+        if (bookingsCtx) {
+            new Chart(bookingsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Confirmed', 'Pending', 'Completed', 'Cancelled'],
+                    datasets: [{
+                        data: [45, 15, 30, 10],
+                        backgroundColor: [
+                            'rgb(16, 185, 129)',
+                            'rgb(251, 191, 36)',
+                            'rgb(59, 130, 246)',
+                            'rgb(239, 68, 68)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

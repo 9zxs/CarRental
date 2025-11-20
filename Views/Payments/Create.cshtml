@@ -1,0 +1,131 @@
+@using CarRentalSystem.Models
+@model Payment
+@{
+    ViewData["Title"] = "Process Payment - DriveLuxe";
+    var appointment = ViewBag.Appointment as Appointment;
+    var amount = ViewBag.Amount as decimal? ?? 0;
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] h5:not(.card h5),
+    [data-theme="dark"] p:not(.card p):not(.card-header p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .card-header:not(.bg-success):not(.bg-warning):not(.bg-danger):not(.bg-secondary) {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card *:not(.card-header):not(.card-header *) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted,
+    [data-theme="dark"] .card small.text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-select,
+    [data-theme="dark"] .card label {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #d1d5db !important;
+    }
+    
+    /* Keep white text on colored headers */
+    [data-theme="dark"] .card-header.bg-success,
+    [data-theme="dark"] .card-header.bg-success * {
+        color: white !important;
+    }
+</style>
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-credit-card"></i> Process Payment</h4>
+                </div>
+                <div class="card-body">
+                    @if (appointment != null)
+                    {
+                        <div class="alert alert-info">
+                            <h6><strong>Booking Details:</strong></h6>
+                            <p class="mb-1"><strong>Car:</strong> @appointment.Car?.DisplayName</p>
+                            <p class="mb-1"><strong>Pickup:</strong> @appointment.StartDate.ToString("MMM dd, yyyy HH:mm")</p>
+                            <p class="mb-1"><strong>Return:</strong> @appointment.EndDate.ToString("MMM dd, yyyy HH:mm")</p>
+                            <p class="mb-0"><strong>Total Amount:</strong> RM @amount.ToString("N2")</p>
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="AppointmentId" />
+                        <input type="hidden" asp-for="Amount" />
+                        
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="PaymentMethod" class="form-label fw-bold">Payment Method *</label>
+                            <select asp-for="PaymentMethod" class="form-select" required>
+                                <option value="">-- Select Payment Method --</option>
+                                <option value="Credit Card">Credit Card</option>
+                                <option value="Debit Card">Debit Card</option>
+                                <option value="PayPal">PayPal</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                            <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TransactionId" class="form-label">Transaction ID (Optional)</label>
+                            <input asp-for="TransactionId" class="form-control" placeholder="Enter transaction ID if available" />
+                            <small class="text-muted">Leave empty for automatic generation</small>
+                        </div>
+
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fs-5 fw-bold">Total Amount:</span>
+                                    <span class="fs-4 text-success fw-bold">RM @amount.ToString("N2")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Confirm Payment
+                            </button>
+                            <a asp-controller="Appointments" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

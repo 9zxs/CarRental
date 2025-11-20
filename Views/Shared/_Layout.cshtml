@@ -1,0 +1,337 @@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    ApplicationUser? currentUser = null;
+    if (User.Identity!.IsAuthenticated)
+    {
+        currentUser = await UserManager.GetUserAsync(User);
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DriveLuxe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/theme-variables.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/animations.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body data-theme="light">
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-car"></i> DriveLuxe
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Cars" asp-action="Index">Cars</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="EVHub" asp-action="Index">EV Hub</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Subscriptions" asp-action="Index">Subscriptions</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Promotions" asp-action="Index">Promotions</a>
+                        </li>
+                        @if (User.Identity!.IsAuthenticated && !User.IsInRole("Staff") && !User.IsInRole("Manager"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Appointments" asp-action="Index">My Bookings</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Favorites" asp-action="Index">
+                                    <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">favorite</span>
+                                    Favorites
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Reviews" asp-action="Index">Reviews</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Payments" asp-action="Index">Payments</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Notifications" asp-action="Index">
+                                    Notifications
+                                    <span id="notificationBadge" class="badge bg-danger d-none">0</span>
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Staff") || User.IsInRole("Manager"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user-cog"></i> Staff Center
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-0" aria-labelledby="staffDropdown" style="min-width: 300px; border-radius: 1rem; padding: 0.5rem; margin-top: 0.75rem;">
+                                    <li class="px-3 py-2 border-bottom border-secondary">
+                                        <h6 class="dropdown-header text-white fw-bold mb-0">
+                                            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">dashboard</span>
+                                            Overview
+                                        </h6>
+                                    </li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Staff" asp-action="Dashboard">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">speed</span>
+                                        Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Analytics" asp-action="Dashboard">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">analytics</span>
+                                        Analytics
+                                    </a></li>
+                                    <li><hr class="dropdown-divider border-secondary my-2"></li>
+                                    
+                                    <li class="px-3 py-2 border-bottom border-secondary">
+                                        <h6 class="dropdown-header text-white fw-bold mb-0">
+                                            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">inventory</span>
+                                            Operations
+                                        </h6>
+                                    </li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Staff" asp-action="Orders">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">receipt_long</span>
+                                        Manage Orders
+                                    </a></li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Staff" asp-action="VehicleManagement">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">directions_car</span>
+                                        Vehicle Management
+                                    </a></li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Staff" asp-action="ReviewManagement">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">rate_review</span>
+                                        Review Management
+                                    </a></li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Staff" asp-action="UserManagement">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">people</span>
+                                        Customer Management
+                                    </a></li>
+                                    <li><hr class="dropdown-divider border-secondary my-2"></li>
+                                    
+                                    <li class="px-3 py-2 border-bottom border-secondary">
+                                        <h6 class="dropdown-header text-white fw-bold mb-0">
+                                            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">settings</span>
+                                            Configuration
+                                        </h6>
+                                    </li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Promotions" asp-action="Manage">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">local_offer</span>
+                                        Manage Promotions
+                                    </a></li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Subscriptions" asp-action="Manage">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">workspace_premium</span>
+                                        Manage Plans
+                                    </a></li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Staff" asp-action="Reports">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">bar_chart</span>
+                                        Sales Reports
+                                    </a></li>
+                                    
+                                    @if (User.IsInRole("Manager"))
+                                    {
+                                        <li><hr class="dropdown-divider border-secondary my-2"></li>
+                                        <li class="px-3 py-2 border-bottom border-secondary">
+                                            <h6 class="dropdown-header text-warning fw-bold mb-0">
+                                                <span class="material-symbols-outlined me-2" style="vertical-align: middle;">admin_panel_settings</span>
+                                                Manager Only
+                                            </h6>
+                                        </li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Manager" asp-action="Dashboard">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">shield</span>
+                                            Manager Panel
+                                        </a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Manager" asp-action="StaffManagement">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">group</span>
+                                            Staff Management
+                                        </a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Manager" asp-action="AllUsers">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">groups</span>
+                                            All Users
+                                        </a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Settings" asp-action="Index">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">tune</span>
+                                            System Settings
+                                        </a></li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <button id="theme-toggle" class="btn btn-link nav-link text-white" title="Toggle theme">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                        </li>
+                        @if (User.Identity!.IsAuthenticated && currentUser != null)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @if (!string.IsNullOrEmpty(currentUser.ProfilePictureUrl))
+                                    {
+                                        <img src="@currentUser.ProfilePictureUrl" alt="Profile" class="rounded-circle me-2" style="width: 36px; height: 36px; object-fit: cover; border: 2px solid rgba(255,255,255,0.3);" />
+                                    }
+                                    else
+                                    {
+                                        <div class="rounded-circle bg-white bg-opacity-20 d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                                            <i class="fas fa-user text-white" style="font-size: 1.1rem;"></i>
+                                        </div>
+                                    }
+                                    <span class="d-none d-md-inline">@(currentUser.FirstName ?? currentUser.Email)</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="userDropdown" style="min-width: 280px; border-radius: 1rem; padding: 0.5rem; margin-top: 0.75rem;">
+                                    <li class="px-3 py-3 border-bottom border-secondary">
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(currentUser.ProfilePictureUrl))
+                                            {
+                                                <img src="@currentUser.ProfilePictureUrl" alt="Profile" class="rounded-circle me-3" style="width: 48px; height: 48px; object-fit: cover;" />
+                                            }
+                                            else
+                                            {
+                                                <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                                    <i class="fas fa-user text-primary" style="font-size: 1.5rem;"></i>
+                                                </div>
+                                            }
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">@(currentUser.FirstName + " " + currentUser.LastName)</h6>
+                                                <small class="text-muted">@currentUser.Email</small>
+                                                @if (User.IsInRole("Staff"))
+                                                {
+                                                    <span class="badge bg-info mt-1">Staff</span>
+                                                }
+                                                else if (User.IsInRole("Manager"))
+                                                {
+                                                    <span class="badge bg-warning mt-1">Manager</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Profile">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">person</span>
+                                        My Profile
+                                    </a></li>
+                                    @if (!User.IsInRole("Staff") && !User.IsInRole("Manager"))
+                                    {
+                                        <li><a class="dropdown-item py-2" asp-controller="Appointments" asp-action="Index">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">event_note</span>
+                                            My Bookings
+                                        </a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Payments" asp-action="Index">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">payment</span>
+                                            Payments
+                                        </a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Reviews" asp-action="Index">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">rate_review</span>
+                                            Reviews
+                                        </a></li>
+                                        <li><a class="dropdown-item py-2" asp-controller="Notifications" asp-action="Index">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">notifications</span>
+                                            Notifications
+                                        </a></li>
+                                        <li><hr class="dropdown-divider border-secondary my-2"></li>
+                                    }
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                                            <button type="submit" class="dropdown-item py-2 text-danger">
+                                                <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">logout</span>
+                                                Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                    <i class="fas fa-sign-in-alt"></i> Login
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Register">
+                                    <i class="fas fa-user-plus"></i> Register
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container-fluid px-0">
+        <main role="main" style="opacity: 1; visibility: visible;">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="fas fa-car"></i> DriveLuxe</h5>
+                    <p>Pioneering the future of mobility through advanced, on-demand vehicular solutions.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white-50">About Us</a></li>
+                        <li><a href="#" class="text-white-50">Contact</a></li>
+                        <li><a href="#" class="text-white-50">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact</h5>
+                    <p class="mb-1"><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p class="mb-1"><i class="fas fa-envelope"></i> info@carrentalpro.com</p>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <p>&copy; 2024 DriveLuxe // System Online</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/theme.js" asp-append-version="true"></script>
+    <script src="~/js/recommendations.js" asp-append-version="true"></script>
+    @if (User.Identity!.IsAuthenticated)
+    {
+        <script>
+            // Load unread notification count
+            fetch('/Notifications/GetUnreadCount')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notificationBadge');
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.classList.remove('d-none');
+                    }
+                })
+                .catch(() => {
+                    // Ignore errors
+                });
+        </script>
+    }
+    <script src="~/js/user-friendly.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

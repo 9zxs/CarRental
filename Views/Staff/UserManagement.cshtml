@@ -1,0 +1,309 @@
+@using CarRentalSystem.Models
+@model IEnumerable<ApplicationUser>
+@{
+    ViewData["Title"] = "Customer Management - DriveLuxe";
+    var userRoles = ViewBag.UserRoles as Dictionary<string, IList<string>> ?? new Dictionary<string, IList<string>>();
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .table-responsive,
+    [data-theme="dark"] .table,
+    [data-theme="dark"] .table-light,
+    [data-theme="dark"] .table thead,
+    [data-theme="dark"] .table tbody {
+        background-color: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .table th,
+    [data-theme="dark"] .table td,
+    [data-theme="dark"] .table-light th,
+    [data-theme="dark"] .table-light td {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .table .text-muted,
+    [data-theme="dark"] .table td.text-muted,
+    [data-theme="dark"] .table td.text-center.text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .card label,
+    [data-theme="dark"] .card .form-label {
+        color: #1f2937 !important;
+    }
+    
+    /* Form elements in white cards */
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-select {
+        background-color: white !important;
+        border-color: #d1d5db !important;
+        color: #1f2937 !important;
+    }
+</style>
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">people</span>
+            User Access Management
+        </h2>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1rem; vertical-align: middle;">check_circle</span>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1rem; vertical-align: middle;">error</span>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            <form method="get" id="searchForm" class="row g-3 mb-4">
+                <div class="col-md-5">
+                    <label class="form-label fw-medium">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">search</span>
+                        Search Users
+                    </label>
+                    <input type="text" name="searchTerm" id="searchInput" class="form-control" placeholder="Search by name, email, phone..." value="@searchTerm" autocomplete="off" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-medium">Status</label>
+                    <select name="statusFilter" id="statusFilter" class="form-select">
+                        <option value="All" selected="@(ViewBag.StatusFilter == "All")">All Status</option>
+                        <option value="Active" selected="@(ViewBag.StatusFilter == "Active")">Active</option>
+                        <option value="Inactive" selected="@(ViewBag.StatusFilter == "Inactive")">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-medium">Role</label>
+                    <select name="roleFilter" id="roleFilter" class="form-select">
+                        <option value="All" selected="@(ViewBag.RoleFilter == "All")">All Roles</option>
+                        <option value="Customer" selected="@(ViewBag.RoleFilter == "Customer")">Customer</option>
+                        <option value="Staff" selected="@(ViewBag.RoleFilter == "Staff")">Staff</option>
+                        @if (User.IsInRole("Manager"))
+                        {
+                            <option value="Manager" selected="@(ViewBag.RoleFilter == "Manager")">Manager</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">search</span>
+                        Search
+                    </button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Bookings</th>
+                            <th>Total Spent</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var userStats = ViewBag.UserStats as Dictionary<string, object> ?? new Dictionary<string, object>();
+                        }
+                        @foreach (var user in Model)
+                        {
+                            var roles = userRoles.ContainsKey(user.Id) ? userRoles[user.Id] : new List<string>();
+                            var stats = userStats.ContainsKey(user.Id) ? userStats[user.Id] as dynamic : null;
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+                                        {
+                                            <img src="@user.ProfilePictureUrl" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;" />
+                                        }
+                                        else
+                                        {
+                                            <span class="material-symbols-outlined me-2">account_circle</span>
+                                        }
+                                        <div>
+                                            <div class="fw-medium">@(user.FirstName ?? "") @(user.LastName ?? "")</div>
+                                            @if (!string.IsNullOrEmpty(user.State))
+                                            {
+                                                <small class="text-muted">@user.State</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@(user.PhoneNumber ?? "-")</td>
+                                <td>
+                                    @foreach (var role in roles)
+                                    {
+                                        @if (role == "Manager")
+                                        {
+                                            <span class="badge bg-danger">@role</span>
+                                        }
+                                        else if (role == "Staff")
+                                        {
+                                            <span class="badge bg-warning text-dark">@role</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-primary">@role</span>
+                                        }
+                                    }
+                                </td>
+                                <td>
+                                    @if (user.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-medium">@(stats?.AppointmentCount ?? 0)</span>
+                                </td>
+                                <td>
+                                    <span class="fw-medium text-success">RM @(stats != null ? ((decimal)stats.TotalSpent).ToString("N2") : "0.00")</span>
+                                </td>
+                                <td>@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="UserDetails" asp-route-userId="@user.Id" class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <span class="material-symbols-outlined" style="font-size: 1rem;">visibility</span>
+                                        </a>
+                                        @{
+                                            var canManage = true;
+                                            // Staff cannot manage Manager accounts, only Manager role can
+                                            if (roles.Contains("Manager") && !User.IsInRole("Manager"))
+                                            {
+                                                canManage = false;
+                                            }
+                                            // Cannot manage own account
+                                            if (user.Id == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                                            {
+                                                canManage = false;
+                                            }
+                                        }
+                                        @if (canManage)
+                                        {
+                                            <form asp-action="ToggleCustomerStatus" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to @(user.IsActive ? "deactivate" : "activate") this @(roles.FirstOrDefault() ?? "user") account?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="userId" value="@user.Id" />
+                                                <button type="submit" class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success")" title="@(user.IsActive ? "Deactivate" : "Activate")">
+                                                    <span class="material-symbols-outlined" style="font-size: 1rem;">@(user.IsActive ? "block" : "check_circle")</span>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="Cannot modify this account">
+                                                <span class="material-symbols-outlined" style="font-size: 1rem;">lock</span>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <span class="material-symbols-outlined mb-2" style="font-size: 3rem; opacity: 0.5;">person_search</span>
+                                    <div>No users found</div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Auto-submit on change - no need to click search button
+    (function() {
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const roleFilter = document.getElementById('roleFilter');
+        const searchForm = document.getElementById('searchForm');
+
+        // Search on Enter key or blur (lose focus)
+        if (searchInput && searchForm) {
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchForm.submit();
+                }
+            });
+            searchInput.addEventListener('blur', function() {
+                searchForm.submit();
+            });
+        }
+
+        // Auto-submit when filters change - immediate, no delay
+        if (statusFilter) {
+            statusFilter.addEventListener('change', function() {
+                searchForm.submit();
+            });
+        }
+
+        if (roleFilter) {
+            roleFilter.addEventListener('change', function() {
+                searchForm.submit();
+            });
+        }
+    })();
+</script>
+}
+

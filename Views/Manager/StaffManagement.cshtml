@@ -1,0 +1,100 @@
+@model IEnumerable<ApplicationUser>
+@{
+    ViewData["Title"] = "Staff Management";
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .table,
+    [data-theme="dark"] .table thead,
+    [data-theme="dark"] .table tbody {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card *,
+    [data-theme="dark"] .table th,
+    [data-theme="dark"] .table td {
+        color: #1f2937 !important;
+    }
+</style>
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-users-cog"></i> Staff Management</h2>
+        <a asp-action="CreateStaff" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Add Staff
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var staff in Model)
+                    {
+                        <tr>
+                            <td>@staff.FirstName @staff.LastName</td>
+                            <td>@staff.Email</td>
+                            <td>@(staff.PhoneNumber ?? "-")</td>
+                            <td>
+                                @if (staff.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>@staff.CreatedAt.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                <form asp-action="ToggleStaffStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="userId" value="@staff.Id" />
+                                    <button type="submit" class="btn btn-sm @(staff.IsActive ? "btn-warning" : "btn-success")">
+                                        @(staff.IsActive ? "Deactivate" : "Activate")
+                                    </button>
+                                </form>
+                                <form asp-action="DeleteStaff" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this staff member?');">
+                                    <input type="hidden" name="userId" value="@staff.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

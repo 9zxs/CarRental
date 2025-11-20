@@ -1,0 +1,158 @@
+@using CarRentalSystem.Models
+@model Subscription
+@{
+    ViewData["Title"] = "Create Subscription Plan - DriveLuxe";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] h5:not(.card h5),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted,
+    [data-theme="dark"] .card label.text-muted,
+    [data-theme="dark"] .card small.text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-select,
+    [data-theme="dark"] .card .form-check-input,
+    [data-theme="dark"] .card label {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #d1d5db !important;
+    }
+    
+    [data-theme="dark"] .card .form-check-label {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-danger {
+        color: #dc2626 !important;
+    }
+</style>
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">workspace_premium</span>
+            Create Subscription Plan
+        </h2>
+        <a asp-action="Manage" class="btn btn-outline-secondary">
+            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">arrow_back</span>
+            Back to Plans
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-medium">Plan Name *</label>
+                            <input asp-for="Name" class="form-control" placeholder="e.g., Basic Plan, Premium Plan" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-medium">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Plan description..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="MonthlyPrice" class="form-label fw-medium">Monthly Price (RM) *</label>
+                                <input asp-for="MonthlyPrice" class="form-control" type="number" step="0.01" min="0" placeholder="e.g., 99.00" />
+                                <span asp-validation-for="MonthlyPrice" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DiscountPercentage" class="form-label fw-medium">Discount Percentage (%) *</label>
+                                <input asp-for="DiscountPercentage" class="form-control" type="number" step="0.01" min="0" max="100" placeholder="e.g., 10" />
+                                <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="MaxRentalsPerMonth" class="form-label fw-medium">Max Rentals Per Month *</label>
+                                <input asp-for="MaxRentalsPerMonth" class="form-control" type="number" min="1" placeholder="e.g., 5" />
+                                <span asp-validation-for="MaxRentalsPerMonth" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="MaxDaysPerRental" class="form-label fw-medium">Max Days Per Rental *</label>
+                                <input asp-for="MaxDaysPerRental" class="form-control" type="number" min="1" placeholder="e.g., 7" />
+                                <span asp-validation-for="MaxDaysPerRental" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Options</label>
+                            <div class="mt-2">
+                                <div class="form-check">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                    <label asp-for="IsActive" class="form-check-label">Active</label>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input asp-for="IncludesEVPriority" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IncludesEVPriority" class="form-check-label">Includes EV Priority</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="Manage" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">save</span>
+                                Create Plan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

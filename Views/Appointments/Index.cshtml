@@ -1,0 +1,378 @@
+@using CarRentalSystem.Models
+@model IEnumerable<Appointment>
+@{
+    ViewData["Title"] = "My Bookings - DriveLuxe";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --dark: #1f2937;
+        --light: #f9fafb;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--light);
+    }
+
+    .booking-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .booking-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .booking-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--primary) 0%, #667eea 100%);
+        color: white;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+
+    .booking-body {
+        padding: 1.5rem;
+        background: white;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-badge.confirmed {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+
+    .status-badge.pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .status-badge.completed {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info);
+    }
+
+    .status-badge.cancelled {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .car-image {
+        width: 120px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.booking-card h1),
+    [data-theme="dark"] h3:not(.booking-card h3),
+    [data-theme="dark"] h5:not(.booking-card h5):not(.booking-header h5),
+    [data-theme="dark"] p:not(.booking-card p):not(.booking-body p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White booking cards in dark mode need dark text */
+    [data-theme="dark"] .booking-card {
+        background: white !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .booking-body {
+        background: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .booking-body * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .booking-body .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Keep white text on colored booking headers */
+    [data-theme="dark"] .booking-header,
+    [data-theme="dark"] .booking-header * {
+        color: white !important;
+    }
+    
+    /* Cards used for tabs */
+    [data-theme="dark"] .card:not(.booking-card) {
+        background-color: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card:not(.booking-card) * {
+        color: #1f2937 !important;
+    }
+</style>
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="mb-1 fw-bold" style="font-size: 2rem;">My Bookings</h1>
+            <p class="text-muted mb-0">View and manage your rental bookings</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary rounded-2 fw-bold">
+            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">add</span>
+            New Booking
+        </a>
+    </div>
+
+    @{
+        var view = ViewBag.View as string ?? "Active";
+    }
+
+    <!-- View Tabs -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs border-0" role="tablist" style="padding: 0.75rem 1rem 0;">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link @(view == "Active" ? "active" : "")" 
+                       asp-action="Index" asp-route-view="Active"
+                       style="border-radius: 0.5rem 0.5rem 0 0;">
+                        <span class="material-symbols-outlined me-2" style="font-size: 1rem; vertical-align: middle;">pending</span>
+                        Active Bookings
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link @(view == "History" ? "active" : "")" 
+                       asp-action="Index" asp-route-view="History"
+                       style="border-radius: 0.5rem 0.5rem 0 0;">
+                        <span class="material-symbols-outlined me-2" style="font-size: 1rem; vertical-align: middle;">history</span>
+                        History
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link @(view == "All" ? "active" : "")" 
+                       asp-action="Index" asp-route-view="All"
+                       style="border-radius: 0.5rem 0.5rem 0 0;">
+                        <span class="material-symbols-outlined me-2" style="font-size: 1rem; vertical-align: middle;">list</span>
+                        All Bookings
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">check_circle</span>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined mb-3" style="font-size: 4rem; color: #d1d5db;">calendar_month</span>
+            <h3 class="fw-bold mb-2">No Active Bookings</h3>
+            <p class="text-muted mb-4">Start by booking your first car rental. Cancelled bookings are not shown here.</p>
+            <a asp-action="Create" class="btn btn-primary rounded-2 fw-bold px-4">
+                Create Booking
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @{
+                var payments = ViewBag.Payments as Dictionary<int, Payment> ?? new Dictionary<int, Payment>();
+            }
+            @foreach (var appointment in Model)
+            {
+                <div class="col-12">
+                    <div class="booking-card card-3d">
+                            @{
+                                var payment = payments.ContainsKey(appointment.Id) ? payments[appointment.Id] : null;
+                                var isPaymentCompleted = payment != null && payment.Status == "Completed";
+                            }
+                            <div class="booking-header">
+                            <div class="d-flex align-items-center gap-3 flex-grow-1">
+                                <span class="material-symbols-outlined" style="font-size: 2rem;">directions_car</span>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-0 fw-bold">@(appointment.Car?.DisplayName ?? "Vehicle")</h5>
+                                    <p class="mb-0 opacity-75 small">Booking ID: #@appointment.Id</p>
+                                </div>
+                            </div>
+                            <span class="status-badge @appointment.Status.ToLower()">
+                                @if (appointment.Status == "Confirmed" || appointment.Status == "Completed")
+                                {
+                                    <i class="fas fa-check-circle me-1"></i>
+                                }
+                                else if (appointment.Status == "Pending")
+                                {
+                                    <i class="fas fa-clock me-1"></i>
+                                }
+                                else if (appointment.Status == "Cancelled")
+                                {
+                                    <i class="fas fa-times-circle me-1"></i>
+                                }
+                                @appointment.Status
+                                @if (isPaymentCompleted)
+                                {
+                                    <span class="ms-1" title="Payment Completed">
+                                        <i class="fas fa-check-circle text-white" style="font-size: 0.75rem;"></i>
+                                    </span>
+                                }
+                            </span>
+                        </div>
+                        <div class="booking-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-2 mb-3 mb-md-0">
+                                    @if (appointment.Car != null && !string.IsNullOrEmpty(appointment.Car.ImageUrl))
+                                    {
+                                        <img src="@appointment.Car.ImageUrl" alt="@appointment.Car.DisplayName" class="car-image w-100">
+                                    }
+                                    else
+                                    {
+                                        <div class="car-image w-100 bg-light d-flex align-items-center justify-content-center rounded">
+                                            <span class="material-symbols-outlined text-muted" style="font-size: 2rem;">directions_car</span>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-md-5 mb-3 mb-md-0">
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-start gap-2">
+                                                <span class="material-symbols-outlined text-primary" style="font-size: 1.25rem;">schedule</span>
+                                                <div>
+                                                    <p class="small text-muted mb-0">Pickup</p>
+                                                    <p class="mb-0 fw-semibold">@appointment.StartDate.ToString("MMM dd, yyyy")</p>
+                                                    <p class="small text-muted mb-0">@appointment.StartDate.ToString("h:mm tt")</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-start gap-2">
+                                                <span class="material-symbols-outlined text-primary" style="font-size: 1.25rem;">event_available</span>
+                                                <div>
+                                                    <p class="small text-muted mb-0">Return</p>
+                                                    <p class="mb-0 fw-semibold">@appointment.EndDate.ToString("MMM dd, yyyy")</p>
+                                                    <p class="small text-muted mb-0">@appointment.EndDate.ToString("h:mm tt")</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <p class="small text-muted mb-1">Customer</p>
+                                        <p class="mb-0 fw-semibold">@appointment.CustomerName</p>
+                                        <p class="small text-muted mb-0">@appointment.CustomerEmail</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3 mb-md-0 text-center text-md-end">
+                                    <p class="small text-muted mb-1">Total Price</p>
+                                    <p class="h4 mb-0 fw-bold text-primary">RM @appointment.TotalPrice.ToString("N2")</p>
+                                    @if (appointment.DiscountAmount.HasValue && appointment.DiscountAmount > 0)
+                                    {
+                                        <p class="small text-success mb-0">
+                                            <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">savings</span>
+                                            Saved $@appointment.DiscountAmount.Value.ToString("F2")
+                                        </p>
+                                    }
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="d-flex flex-column gap-2">
+                                        <a asp-action="Details" asp-route-id="@appointment.Id" 
+                                           class="btn btn-outline-primary btn-sm rounded-2 fw-semibold">
+                                            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">visibility</span>
+                                            View
+                                        </a>
+                                        @if (appointment.Status == "Pending" && (!payments.ContainsKey(appointment.Id) || payments[appointment.Id].Status != "Completed"))
+                                        {
+                                            <a asp-controller="Payments" asp-action="Create" asp-route-appointmentId="@appointment.Id" 
+                                               class="btn btn-success btn-sm rounded-2 fw-semibold">
+                                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">payments</span>
+                                                Pay Now
+                                            </a>
+                                            
+                                            var hoursUntilPickupPending = (appointment.StartDate - DateTime.UtcNow).TotalHours;
+                                            var canCancelFreePending = hoursUntilPickupPending >= 48;
+                                            <form asp-action="Cancel" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@appointment.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-2 fw-semibold w-100">
+                                                    <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">close</span>
+                                                    Cancel
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (appointment.Status == "Confirmed" && payments.ContainsKey(appointment.Id) && payments[appointment.Id].Status == "Completed")
+                                        {
+                                            var hoursUntilPickupConfirmed = (appointment.StartDate - DateTime.UtcNow).TotalHours;
+                                            var canCancelFreeConfirmed = hoursUntilPickupConfirmed >= 48;
+                                            <form asp-action="Cancel" method="post" class="d-inline" onsubmit="return confirmCancel(@canCancelFreeConfirmed.ToString().ToLower());">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@appointment.Id" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-2 fw-semibold w-100">
+                                                    <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">close</span>
+                                                    Cancel
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (payments.ContainsKey(appointment.Id) && payments[appointment.Id].Status == "Completed")
+                                        {
+                                            <span class="badge bg-success text-white mt-2 d-flex align-items-center justify-content-center" title="Payment Completed">
+                                                <i class="fas fa-check-circle me-1"></i>Paid ✓
+                                            </span>
+                                        }
+                                        @if (payments.ContainsKey(appointment.Id) && payments[appointment.Id].Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark mt-2 d-flex align-items-center justify-content-center" title="Payment Pending">
+                                                <i class="fas fa-clock me-1"></i>Payment Pending
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function confirmCancel(canCancelFree) {
+            var message = canCancelFree 
+                ? 'Are you sure you want to cancel this booking?\n\nFree cancellation applies (48+ hours before pickup). A full refund will be processed.\n\nClick OK to proceed with cancellation.'
+                : 'Are you sure you want to cancel this booking?\n\nNote: Cancellation within 48 hours of pickup may be subject to cancellation fees. Please check cancellation policy.\n\nClick OK to proceed with cancellation.';
+            return confirm(message);
+        }
+    </script>
+}

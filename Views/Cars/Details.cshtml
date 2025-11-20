@@ -1,0 +1,501 @@
+@model Car
+@{
+    ViewData["Title"] = "Vehicle Details - DriveLuxe";
+    var reviews = ViewBag.Reviews as List<Review> ?? new List<Review>();
+    var averageRating = ViewBag.AverageRating as double? ?? 0;
+    var totalReviews = ViewBag.TotalReviews as int? ?? 0;
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --background-light: #f8f9fc;
+        --background-dark: #101622;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        font-size: 20px;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .spec-card {
+        background: #e7ebf3;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+
+    .spec-card:hover {
+        background: #d1d9e6;
+    }
+
+    .spec-card .material-symbols-outlined {
+        color: var(--primary);
+        font-size: 2rem !important;
+        margin-bottom: 0.5rem;
+    }
+
+    .main-image {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        aspect-ratio: 4/3;
+    }
+
+    .thumbnail-image {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        aspect-ratio: 16/9;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s ease;
+        border: 2px solid transparent;
+    }
+
+    .thumbnail-image:hover {
+        opacity: 1;
+    }
+
+    .thumbnail-image.active {
+        opacity: 1;
+        border-color: var(--primary);
+    }
+
+    #favoriteBtn {
+        transition: all 0.3s ease;
+    }
+
+    #favoriteBtn:hover {
+        background: rgba(255, 255, 255, 1) !important;
+        transform: scale(1.1);
+    }
+
+    #favoriteBtn .material-symbols-outlined {
+        transition: all 0.3s ease;
+    }
+
+    #favoriteBtn.favorited .material-symbols-outlined {
+        color: #ef4444 !important;
+        font-variation-settings: 'FILL' 1 !important;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .spec-card {
+        background: var(--bg-secondary, #1f2937) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .spec-card:hover {
+        background: var(--bg-tertiary, #374151) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card:not([class*="bg-"]):not(.spec-card):not(.promotion-card):not(.subscription-card):not(.review-card):not(.favorite-card):not(.about-card):not(.service-card) {
+        background: white !important;
+        border-color: #e5e7eb !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card:not([class*="bg-"]):not(.spec-card):not(.promotion-card):not(.subscription-card):not(.review-card):not(.favorite-card):not(.about-card):not(.service-card) *:not(.material-symbols-outlined) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card:not([class*="bg-"]):not(.spec-card):not(.promotion-card):not(.subscription-card):not(.review-card):not(.favorite-card):not(.about-card):not(.service-card) .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Ensure all page text is visible in dark mode */
+    [data-theme="dark"] .container:not(.hero-section):not(.subscription-header) *:not(.card):not(.card *):not(.btn):not(.material-symbols-outlined) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Override for white cards specifically */
+    [data-theme="dark"] .card-3d:not(.spec-card) *:not(.material-symbols-outlined) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card-3d:not(.spec-card) .text-muted {
+        color: #6b7280 !important;
+    }
+</style>
+}
+
+
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <p class="text-primary small fw-medium mb-1">@(Model.Category?.Name ?? "Mid-size Sedan")</p>
+                <h1 class="mb-2" style="font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em;">@Model.DisplayName</h1>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <span class="material-symbols-outlined @(i <= Math.Round((double)averageRating, 0) ? "text-warning" : "text-muted")" 
+                                  style="font-size: 20px; @(i <= Math.Round((double)averageRating, 0) ? "font-variation-settings: 'FILL' 1;" : "")">star</span>
+                        }
+                    </div>
+                    <p class="text-muted small mb-0">@averageRating.ToString("F1") (@totalReviews reviews)</p>
+                </div>
+            </div>
+
+            <div class="main-image mb-3 position-relative">
+                <img id="mainCarImage" 
+                     src="@(Model.ImageUrl ?? "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800")" 
+                     alt="@Model.DisplayName"
+                     class="w-100 h-100"
+                     style="object-fit: cover;">
+                @if (User.Identity!.IsAuthenticated && !User.IsInRole("Staff") && !User.IsInRole("Manager"))
+                {
+                    var isFavorited = ViewBag.IsFavorited as bool? ?? false;
+                    <button id="favoriteBtn" 
+                            class="btn position-absolute top-0 end-0 m-3 rounded-circle"
+                            style="background: rgba(255, 255, 255, 0.9); border: none; width: 48px; height: 48px; z-index: 10;"
+                            data-car-id="@Model.Id"
+                            onclick="toggleFavorite(@Model.Id)">
+                        <span class="material-symbols-outlined @(isFavorited ? "text-danger" : "text-muted")" 
+                              style="font-size: 24px; font-variation-settings: '@(isFavorited ? "FILL" : "FILL")' 1;">
+                            favorite
+                        </span>
+                    </button>
+                }
+            </div>
+
+            <div class="row g-3">
+                <div class="col-3">
+                    <div class="thumbnail-image active" onclick="changeImage('@(Model.ImageUrl ?? "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800")')">
+                        <img src="@(Model.ImageUrl ?? "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800")" 
+                             alt="View 1"
+                             class="w-100 h-100"
+                             style="object-fit: cover;">
+                    </div>
+                </div>
+                @for (int i = 1; i <= 3; i++)
+                {
+                    <div class="col-3">
+                        <div class="thumbnail-image" onclick="changeImage('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400')">
+                            <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400" 
+                                 alt="View @(i+1)"
+                                 class="w-100 h-100"
+                                 style="object-fit: cover;">
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3 mb-4 card-3d">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <p class="fw-semibold mb-0">Vehicle Specifications</p>
+                        <div class="d-flex align-items-baseline gap-1">
+                            <p class="h3 mb-0 fw-bold">$@Model.DailyRate</p>
+                            <p class="text-muted mb-0">/day</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-sm-3">
+                            <div class="spec-card">
+                                <span class="material-symbols-outlined">group</span>
+                                <span class="d-block small fw-medium">5 Seats</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="spec-card">
+                                <span class="material-symbols-outlined">settings</span>
+                                <span class="d-block small fw-medium">Auto</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="spec-card">
+                                <span class="material-symbols-outlined">local_gas_station</span>
+                                <span class="d-block small fw-medium">@(Model.IsElectric ? (Model.Range?.ToString() + " mi" ?? "N/A") : "28 MPG")</span>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <div class="spec-card">
+                                <span class="material-symbols-outlined">luggage</span>
+                                <span class="d-block small fw-medium">2 Bags</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small mb-4">@Model.Description</p>
+
+                    @if (Model.IsAvailable)
+                    {
+                        @if (User.Identity!.IsAuthenticated && !User.IsInRole("Staff") && !User.IsInRole("Manager"))
+                        {
+                            var availableSlots = ViewBag.AvailableSlots as List<(DateTime Start, DateTime End)> ?? new List<(DateTime Start, DateTime End)>();
+                            
+                            if (availableSlots.Any())
+                            {
+                                <div class="mb-3">
+                                    <h5 class="fw-bold mb-3">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">schedule</span>
+                                        Available Time Slots
+                                    </h5>
+                                    <div class="available-slots-container" style="max-height: 300px; overflow-y: auto;">
+                                        @foreach (var slot in availableSlots.Take(10))
+                                        {
+                                            var duration = slot.End - slot.Start;
+                                            var days = (int)Math.Ceiling(duration.TotalDays);
+                                            
+                                            <div class="slot-card mb-2 p-3 border rounded-2" style="cursor: pointer; transition: all 0.2s ease;" 
+                                                 onclick="selectTimeSlot(@Model.Id, '@slot.Start.ToString("yyyy-MM-ddTHH:mm")', '@slot.End.ToString("yyyy-MM-ddTHH:mm")')"
+                                                 onmouseover="this.style.background='#f0f4ff'; this.style.borderColor='var(--primary)';"
+                                                 onmouseout="this.style.background='white'; this.style.borderColor='#e5e7eb';">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <div class="fw-semibold">
+                                                            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">event</span>
+                                                            @slot.Start.ToString("MMM dd, yyyy HH:mm")
+                                                        </div>
+                                                        <div class="text-muted small">
+                                                            <span class="material-symbols-outlined me-1" style="font-size: 0.875rem; vertical-align: middle;">history</span>
+                                                            Until @slot.End.ToString("MMM dd, yyyy HH:mm")
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <div class="fw-bold text-primary">@days day@(days != 1 ? "s" : "")</div>
+                                                        <div class="text-muted small">RM @(Model.DailyRate * days)</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (availableSlots.Count > 10)
+                                        {
+                                            <div class="text-center text-muted small mt-2">
+                                                Showing first 10 slots. More available.
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <a asp-controller="Appointments" asp-action="Create" asp-route-carId="@Model.Id" 
+                                   class="btn btn-primary w-100 rounded-2 fw-bold border-0" 
+                                   style="height: 48px; background: var(--primary); font-size: 1rem;">
+                                    <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">calendar_month</span>
+                                    Select Time Slot & Book
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">info</span>
+                                    No available time slots in the next 30 days. Please check back later.
+                                </div>
+                            }
+                            
+                            <p class="text-center text-muted small mt-2 mb-0">Free cancellation up to 48 hours before pickup.</p>
+                        }
+                        else if (!User.Identity!.IsAuthenticated)
+                        {
+                            <a asp-controller="Account" asp-action="Login" 
+                               class="btn btn-primary w-100 rounded-2 fw-bold border-0" 
+                               style="height: 48px; background: var(--primary); font-size: 1rem;">
+                                <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">login</span>
+                                Login to Book
+                            </a>
+                            <p class="text-center text-muted small mt-2 mb-0">Please login as a customer to make a booking.</p>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary w-100 rounded-2 fw-bold border-0" 
+                                    style="height: 48px; font-size: 1rem;" 
+                                    disabled>
+                                Staff/Manager accounts cannot book vehicles
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary w-100 rounded-2 fw-bold border-0" 
+                                style="height: 48px; font-size: 1rem;" 
+                                disabled>
+                            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">block</span>
+                            Currently Unavailable
+                        </button>
+                        <p class="text-center text-muted small mt-2 mb-0">This vehicle is not available for booking at the moment.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-3 card-3d">
+                <div class="card-body p-4">
+                    <p class="fw-semibold mb-4">Key Features</p>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="material-symbols-outlined text-primary">gps_fixed</span>
+                                <span class="small">GPS Navigation</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="material-symbols-outlined text-primary">bluetooth</span>
+                                <span class="small">Bluetooth</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="material-symbols-outlined text-primary">usb</span>
+                                <span class="small">USB Input</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="material-symbols-outlined text-primary">camera_rear</span>
+                                <span class="small">Backup Camera</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="material-symbols-outlined text-primary">air</span>
+                                <span class="small">Air Conditioning</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="material-symbols-outlined text-primary">child_care</span>
+                                <span class="small">Child Seat Available</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="material-symbols-outlined text-primary">key</span>
+                                <span class="small">Keyless Entry</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="material-symbols-outlined text-primary">shield</span>
+                                <span class="small">Collision Warning</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (User.Identity!.IsAuthenticated && !User.IsInRole("Staff") && !User.IsInRole("Manager") && ViewBag.CanReview == true)
+    {
+        <div class="row mt-5 mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <h4 class="mb-3">Share Your Experience</h4>
+                        <p class="text-muted mb-4">Help other customers by writing a review</p>
+                        <a asp-controller="Reviews" asp-action="Create" asp-route-carId="@Model.Id" 
+                           class="btn btn-primary">
+                            <span class="material-symbols-outlined me-2" style="font-size: 1rem; vertical-align: middle;">rate_review</span>
+                            Write a Review
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (totalReviews > 0)
+    {
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="mb-4 fw-bold">Customer Reviews (@totalReviews)</h3>
+                <div class="row g-4">
+                    @foreach (var review in reviews)
+                    {
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100 card-3d">
+                                <div class="card-body">
+                                    <div class="d-flex text-warning mb-3">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <span class="material-symbols-outlined" style="font-size: 18px; @(i <= review.Rating ? "font-variation-settings: 'FILL' 1;" : "")">star</span>
+                                        }
+                                    </div>
+                                    <blockquote class="text-muted small fst-italic mb-3">"@review.Comment"</blockquote>
+                                    <footer class="fw-bold small">- @(review.User?.FirstName + " " + review.User?.LastName ?? "Anonymous")</footer>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                @if (User.Identity!.IsAuthenticated && !User.IsInRole("Staff") && !User.IsInRole("Manager") && ViewBag.CanReview == true)
+                {
+                    <div class="text-center mt-4">
+                        <a asp-controller="Reviews" asp-action="Create" asp-route-carId="@Model.Id" class="btn btn-outline-primary">
+                            Write a Review
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    async function toggleFavorite(carId) {
+        const btn = document.getElementById('favoriteBtn');
+        const icon = btn.querySelector('.material-symbols-outlined');
+        const isFavorited = btn.classList.contains('favorited');
+        
+        try {
+            const response = await fetch(isFavorited ? 
+                `/Favorites/Remove?carId=${carId}` : 
+                `/Favorites/Add?carId=${carId}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                if (isFavorited) {
+                    btn.classList.remove('favorited');
+                    icon.style.color = '#6b7280';
+                    icon.style.fontVariationSettings = "'FILL' 0";
+                } else {
+                    btn.classList.add('favorited');
+                    icon.style.color = '#ef4444';
+                    icon.style.fontVariationSettings = "'FILL' 1";
+                }
+            } else {
+                alert(data.message || 'Operation failed');
+            }
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
+    function changeImage(src) {
+        document.getElementById('mainCarImage').src = src;
+        document.querySelectorAll('.thumbnail-image').forEach(img => {
+            img.classList.remove('active');
+        });
+        event.currentTarget.classList.add('active');
+    }
+    
+    function selectTimeSlot(carId, startDate, endDate) {
+        // Redirect to booking page with selected time slot
+        window.location.href = `/Appointments/Create?carId=${carId}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
+    }
+</script>
+}

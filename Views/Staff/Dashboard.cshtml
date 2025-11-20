@@ -1,0 +1,541 @@
+@using CarRentalSystem.Models
+@{
+    ViewData["Title"] = "Staff Dashboard - DriveLuxe";
+    var stats = ViewBag.Stats as dynamic;
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --primary-dark: #0d4ab8;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #06b6d4;
+        --purple: #8b5cf6;
+        --dark: #1f2937;
+        --light: #f9fafb;
+    }
+    
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--light);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White stat cards in dark mode need dark text */
+    [data-theme="dark"] .stat-card {
+        background: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .stat-card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .stats-number,
+    [data-theme="dark"] .counter {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .stat-label {
+        color: #6b7280 !important;
+    }
+    
+    /* Chart cards should also be white with dark text */
+    [data-theme="dark"] .chart-container {
+        background: white !important;
+    }
+    
+    [data-theme="dark"] .chart-container * {
+        color: #1f2937 !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.stat-card h1):not(.card h1):not(.quick-action-card h1),
+    [data-theme="dark"] h2:not(.stat-card h2):not(.card h2):not(.quick-action-card h2),
+    [data-theme="dark"] h5:not(.stat-card h5):not(.card h5):not(.quick-action-card h5),
+    [data-theme="dark"] p:not(.stat-card p):not(.card p):not(.quick-action-card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: All cards should be white with dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .card-header:not([class*="bg-"]) {
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card *:not(.card-header):not(.card-header *):not(.stat-icon):not(.stat-icon *),
+    [data-theme="dark"] .quick-action-card *:not(.stat-icon):not(.stat-icon *) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted,
+    [data-theme="dark"] .quick-action-card .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* CRITICAL: Material symbols in stat cards must be visible - override all other rules */
+    [data-theme="dark"] .stat-icon {
+        background-color: inherit !important;
+    }
+    
+    [data-theme="dark"] .stat-icon.primary {
+        background: rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    [data-theme="dark"] .stat-icon.primary .material-symbols-outlined {
+        color: var(--primary, #135bec) !important;
+    }
+    
+    [data-theme="dark"] .stat-icon.success {
+        background: rgba(16, 185, 129, 0.1) !important;
+    }
+    
+    [data-theme="dark"] .stat-icon.success .material-symbols-outlined {
+        color: var(--success, #10b981) !important;
+    }
+    
+    [data-theme="dark"] .stat-icon.warning {
+        background: rgba(245, 158, 11, 0.1) !important;
+    }
+    
+    [data-theme="dark"] .stat-icon.warning .material-symbols-outlined {
+        color: var(--warning, #f59e0b) !important;
+    }
+    
+    [data-theme="dark"] .stat-icon.info {
+        background: rgba(6, 182, 212, 0.1) !important;
+    }
+    
+    [data-theme="dark"] .stat-icon.info .material-symbols-outlined {
+        color: var(--info, #06b6d4) !important;
+    }
+    
+    /* Other material symbols in cards should use dark text */
+    [data-theme="dark"] .card .material-symbols-outlined:not(.stat-icon .material-symbols-outlined):not(.text-primary):not(.text-success):not(.text-warning):not(.text-info) {
+        color: #1f2937 !important;
+    }
+    
+    /* Colored material symbols keep their color */
+    [data-theme="dark"] .card .text-primary .material-symbols-outlined,
+    [data-theme="dark"] .card .text-success .material-symbols-outlined,
+    [data-theme="dark"] .card .text-warning .material-symbols-outlined,
+    [data-theme="dark"] .card .text-info .material-symbols-outlined {
+        color: inherit !important;
+    }
+    
+    /* Material symbols outside cards */
+    [data-theme="dark"] .material-symbols-outlined:not(.card .material-symbols-outlined):not(.stat-icon .material-symbols-outlined):not(.badge .material-symbols-outlined) {
+        color: inherit !important;
+    }
+    
+    /* List group items */
+    [data-theme="dark"] .list-group-item {
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .list-group-item * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .list-group-item .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Progress bars */
+    [data-theme="dark"] .progress {
+        background: #e5e7eb !important;
+    }
+
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        position: relative;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform-style: preserve-3d;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--purple));
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card.primary::before { background: linear-gradient(90deg, var(--primary), #2563eb); }
+    .stat-card.success::before { background: linear-gradient(90deg, var(--success), #059669); }
+    .stat-card.warning::before { background: linear-gradient(90deg, var(--warning), #d97706); }
+    .stat-card.info::before { background: linear-gradient(90deg, var(--info), #0891b2); }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-icon.primary { background: rgba(59, 130, 246, 0.1); color: var(--primary); }
+    .stat-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .stat-icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .stat-icon.info { background: rgba(6, 182, 212, 0.1); color: var(--info); }
+
+    .counter {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--dark);
+        line-height: 1.2;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+
+    .quick-action-card {
+        border: none;
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .action-btn {
+        border: none;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+}
+
+<div class="container py-5 page-transition">
+    <div class="d-flex justify-content-between align-items-center mb-5 fade-in">
+        <div>
+            <h1 class="mb-1 fw-bold" style="font-size: 2.5rem;">Staff Dashboard</h1>
+            <p class="text-muted mb-0">Welcome back! Here's what's happening today.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-success px-3 py-2">
+                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">circle</span>
+                System Online
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3 stagger-item">
+            <div class="stat-card primary h-100 card-3d">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon primary">
+                            <span class="material-symbols-outlined">calendar_month</span>
+                        </div>
+                    </div>
+                    <p class="stat-label mb-2">Total Appointments</p>
+                    <h2 class="counter mb-0" data-target="@(stats?.TotalAppointments ?? 0)">0</h2>
+                    <small class="text-success d-block mt-2">
+                        <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">trending_up</span>
+                        All time
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 stagger-item">
+            <div class="stat-card info h-100 card-3d">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon info">
+                            <span class="material-symbols-outlined">today</span>
+                        </div>
+                    </div>
+                    <p class="stat-label mb-2">Today's Appointments</p>
+                    <h2 class="counter mb-0" data-target="@(stats?.TodayAppointments ?? 0)">0</h2>
+                    <small class="text-info d-block mt-2">
+                        <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">schedule</span>
+                        Scheduled today
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 stagger-item">
+            <div class="stat-card warning h-100 card-3d">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon warning">
+                            <span class="material-symbols-outlined">pending</span>
+                        </div>
+                    </div>
+                    <p class="stat-label mb-2">Pending Approvals</p>
+                    <h2 class="counter mb-0" data-target="@(stats?.PendingAppointments ?? 0)">0</h2>
+                    <small class="text-warning d-block mt-2">
+                        <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">warning</span>
+                        Needs attention
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 stagger-item">
+            <div class="stat-card success h-100 card-3d">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="stat-icon success">
+                            <span class="material-symbols-outlined">payments</span>
+                        </div>
+                    </div>
+                    <p class="stat-label mb-2">Total Revenue</p>
+                    <h2 class="counter mb-0" data-target="@(Math.Round((double)(stats?.TotalRevenue ?? 0), 0))">0</h2>
+                    <small class="text-success d-block mt-2">
+                        <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">attach_money</span>
+                        RM @(stats?.TotalRevenue?.ToString("N2") ?? "0.00")
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-8 fade-in">
+            <div class="card border-0 shadow-sm card-3d">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">analytics</span>
+                        Revenue Overview
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 fade-in">
+            <div class="card border-0 shadow-sm card-3d">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-success">directions_car</span>
+                        Vehicle Status
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Available</span>
+                            <span class="fw-bold text-success">@(stats?.AvailableCars ?? 0)</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" 
+                                 style="width: @((stats?.AvailableCars ?? 0) * 100 / Math.Max(stats?.TotalCars ?? 1, 1))%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Total Fleet</span>
+                            <span class="fw-bold">@(stats?.TotalCars ?? 0)</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <a asp-controller="Cars" asp-action="Index" class="btn btn-outline-primary w-100">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">view_list</span>
+                        View All Vehicles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 fade-in">
+            <div class="quick-action-card card card-3d">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">task_alt</span>
+                        Quick Actions
+                    </h5>
+                    <div class="d-grid gap-3">
+                        <a asp-action="Orders" class="action-btn btn btn-primary text-white">
+                            <span class="material-symbols-outlined">list</span>
+                            Manage Orders
+                        </a>
+                        <a asp-action="Reports" class="action-btn btn btn-info text-white">
+                            <span class="material-symbols-outlined">assessment</span>
+                            View Reports
+                        </a>
+                        <a asp-action="UserManagement" class="action-btn btn btn-secondary">
+                            <span class="material-symbols-outlined">people</span>
+                            Customer Management
+                        </a>
+                        <a asp-controller="Promotions" asp-action="Manage" class="action-btn btn btn-warning text-white">
+                            <span class="material-symbols-outlined">local_offer</span>
+                            Manage Promotions
+                        </a>
+                        <a asp-controller="Subscriptions" asp-action="Manage" class="action-btn btn btn-success text-white">
+                            <span class="material-symbols-outlined">card_membership</span>
+                            Manage Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 fade-in">
+            <div class="quick-action-card card card-3d">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-success">notifications_active</span>
+                        Recent Bookings
+                    </h5>
+                    @{
+                        var recentBookings = stats?.RecentBookings as List<Appointment>;
+                    }
+                    @if (recentBookings != null && recentBookings.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var booking in recentBookings.Take(5).Where(b => b != null))
+                            {
+                                <div class="list-group-item border-0 px-0">
+                                    <div class="d-flex align-items-center gap-3">
+                                        @if (booking.Status == "Confirmed")
+                                        {
+                                            <span class="material-symbols-outlined text-success">check_circle</span>
+                                        }
+                                        else if (booking.Status == "Pending")
+                                        {
+                                            <span class="material-symbols-outlined text-warning">pending</span>
+                                        }
+                                        else if (booking.Status == "Completed")
+                                        {
+                                            <span class="material-symbols-outlined text-info">done_all</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="material-symbols-outlined text-primary">event</span>
+                                        }
+                                        <div class="flex-grow-1">
+                                            <p class="mb-0 small fw-semibold">@(booking.Car?.DisplayName ?? "Vehicle") - @booking.Status</p>
+                                            <small class="text-muted">@booking.CustomerName • @booking.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                        </div>
+                                        <a asp-action="OrderDetails" asp-route-id="@booking.Id" class="btn btn-sm btn-outline-primary">
+                                            <span class="material-symbols-outlined" style="font-size: 1rem;">visibility</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="mt-3">
+                            <a asp-action="Orders" class="btn btn-sm btn-outline-primary w-100">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">list</span>
+                                View All Orders
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-3">
+                            <span class="material-symbols-outlined mb-2" style="font-size: 2rem; opacity: 0.5;">inbox</span>
+                            <div>No recent bookings</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script>
+        // Revenue Chart
+        const ctx = document.getElementById('revenueChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Revenue (RM)',
+                        data: [1200, 1900, 1500, 2500, 2200, 3000, 2800],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'RM ' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}

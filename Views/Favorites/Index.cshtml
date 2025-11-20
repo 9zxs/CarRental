@@ -1,0 +1,240 @@
+@model IEnumerable<Favorite>
+@{
+    ViewData["Title"] = "My Favorites - DriveLuxe";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --danger: #ef4444;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.favorite-card h1):not(.card h1),
+    [data-theme="dark"] h2:not(.favorite-card h2):not(.card h2),
+    [data-theme="dark"] h3:not(.favorite-card h3):not(.card h3),
+    [data-theme="dark"] p:not(.favorite-card p):not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White favorite cards in dark mode need dark text */
+    [data-theme="dark"] .favorite-card,
+    [data-theme="dark"] .card:not([class*="bg-"]) {
+        background: white !important;
+        border-color: #e5e7eb !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .favorite-card *,
+    [data-theme="dark"] .card:not([class*="bg-"]) * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .favorite-card .text-muted,
+    [data-theme="dark"] .card:not([class*="bg-"]) .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .empty-state {
+        color: #6b7280 !important;
+    }
+
+    .favorite-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .favorite-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .car-image-wrapper {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 16/9;
+        background: #e5e7eb;
+    }
+
+    .car-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .favorite-card:hover .car-image-wrapper img {
+        transform: scale(1.1);
+    }
+
+    .favorite-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        padding: 0.5rem;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .favorite-badge:hover {
+        background: var(--danger);
+        transform: scale(1.1);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6b7280;
+    }
+
+    .empty-state .material-symbols-outlined {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+</style>
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="mb-1 fw-bold" style="font-size: 2rem;">
+                <span class="material-symbols-outlined me-2" style="font-size: 2rem; vertical-align: middle; color: var(--danger);">favorite</span>
+                My Favorites
+            </h1>
+            <p class="text-muted mb-0">Your saved vehicles for quick access</p>
+        </div>
+        <a asp-controller="Cars" asp-action="Index" class="btn btn-outline-primary rounded-2">
+            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">search</span>
+            Browse More Cars
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">check_circle</span>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">error</span>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var favorite in Model)
+            {
+                if (favorite.Car != null)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="favorite-card card-3d">
+                            <div class="car-image-wrapper">
+                                <img src="@(favorite.Car.ImageUrl ?? "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800")" 
+                                     alt="@favorite.Car.DisplayName" />
+                                <form asp-action="Remove" asp-route-carId="@favorite.CarId" method="post" 
+                                      onsubmit="return confirm('Remove from favorites?');" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="favorite-badge border-0" title="Remove from favorites">
+                                        <span class="material-symbols-outlined" style="font-size: 1.25rem;">favorite</span>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="card-body p-4">
+                                <h5 class="card-title fw-bold mb-2">@favorite.Car.DisplayName</h5>
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <span class="text-muted small">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">local_gas_station</span>
+                                        @favorite.Car.FuelType
+                                    </span>
+                                    <span class="text-muted small">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">location_on</span>
+                                        @favorite.Car.State
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <span class="fw-bold text-primary" style="font-size: 1.5rem;">RM @favorite.Car.DailyRate.ToString("N0")</span>
+                                        <span class="text-muted small">/day</span>
+                                    </div>
+                                    @if (favorite.Car.IsAvailable)
+                                    {
+                                        <span class="badge bg-success">Available</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Unavailable</span>
+                                    }
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a asp-controller="Cars" asp-action="Details" asp-route-id="@favorite.CarId" 
+                                       class="btn btn-primary rounded-2">
+                                        <span class="material-symbols-outlined me-2" style="font-size: 1rem; vertical-align: middle;">visibility</span>
+                                        View Details
+                                    </a>
+                                    @if (favorite.Car.IsAvailable)
+                                    {
+                                        <a asp-controller="Cars" asp-action="Details" asp-route-id="@favorite.CarId" 
+                                           class="btn btn-outline-primary rounded-2">
+                                            <span class="material-symbols-outlined me-2" style="font-size: 1rem; vertical-align: middle;">schedule</span>
+                                            View Slots
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <span class="material-symbols-outlined">favorite_border</span>
+            <h3 class="fw-bold mb-3">No Favorites Yet</h3>
+            <p class="text-muted mb-4">Start exploring our fleet and save your favorite vehicles for quick access!</p>
+            <a asp-controller="Cars" asp-action="Index" class="btn btn-primary rounded-2 px-4">
+                <span class="material-symbols-outlined me-2" style="vertical-align: middle;">explore</span>
+                Browse Cars
+            </a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+}
+

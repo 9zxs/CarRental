@@ -1,0 +1,190 @@
+@model Payment
+@{
+    ViewData["Title"] = "Payment Details";
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] h5:not(.card h5):not(.card-header h5),
+    [data-theme="dark"] h6:not(.card h6),
+    [data-theme="dark"] p:not(.card p):not(.card-header p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .card-header:not([class*="bg-"]) {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card *:not(.card-header):not(.card-header *) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted,
+    [data-theme="dark"] .card h6.text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .card code {
+        background-color: #f3f4f6 !important;
+        color: #1f2937 !important;
+    }
+    
+    /* Keep white text on colored headers */
+    [data-theme="dark"] .card-header[class*="bg-"],
+    [data-theme="dark"] .card-header[class*="bg-"] * {
+        color: white !important;
+    }
+</style>
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="fas fa-receipt"></i> Payment Details</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-header @(Model.Status == "Completed" ? "bg-success" : Model.Status == "Pending" ? "bg-warning text-dark" : Model.Status == "Failed" ? "bg-danger" : "bg-secondary") text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-credit-card"></i> Payment Information
+                @if (Model.Status == "Completed")
+                {
+                    <span class="badge bg-light text-success ms-2">
+                        <i class="fas fa-check-circle me-1"></i>Completed
+                    </span>
+                }
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Transaction ID</h6>
+                    <p class="fs-5"><code>@(Model.TransactionId ?? "N/A")</code></p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Status</h6>
+                    <p>
+                        @switch (Model.Status)
+                        {
+                            case "Completed":
+                                <span class="badge bg-success fs-6">
+                                    <i class="fas fa-check-circle me-1"></i> Completed
+                                </span>
+                                break;
+                            case "Pending":
+                                <span class="badge bg-warning text-dark fs-6">
+                                    <i class="fas fa-clock me-1"></i> Pending
+                                </span>
+                                break;
+                            case "Failed":
+                                <span class="badge bg-danger fs-6">
+                                    <i class="fas fa-times-circle me-1"></i> Failed
+                                </span>
+                                break;
+                            case "Refunded":
+                                <span class="badge bg-info fs-6">
+                                    <i class="fas fa-undo me-1"></i> Refunded
+                                </span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary fs-6">@Model.Status</span>
+                                break;
+                        }
+                    </p>
+                </div>
+            </div>
+
+            @if (Model.Appointment != null)
+            {
+                <hr>
+                <h5 class="mb-3">Booking Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Car:</strong> @Model.Appointment.Car?.DisplayName</p>
+                        <p><strong>Pickup:</strong> @Model.Appointment.StartDate.ToString("MMM dd, yyyy HH:mm")</p>
+                        <p><strong>Return:</strong> @Model.Appointment.EndDate.ToString("MMM dd, yyyy HH:mm")</p>
+                    </div>
+                    <div class="col-md-6">
+                        @if (Model.Appointment.User != null)
+                        {
+                            <p><strong>Customer:</strong> @(Model.Appointment.User.FirstName + " " + Model.Appointment.User.LastName)</p>
+                            <p><strong>Email:</strong> @Model.Appointment.User.Email</p>
+                        }
+                        <p><strong>Booking Status:</strong> <span class="badge bg-info">@Model.Appointment.Status</span></p>
+                    </div>
+                </div>
+            }
+
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Payment Method</h6>
+                    <p class="fs-5">@Model.PaymentMethod</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted">Amount</h6>
+                    <p class="fs-4 text-success fw-bold">RM @Model.Amount.ToString("N2")</p>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h6 class="text-muted">Payment Date</h6>
+                    <p>@Model.PaymentDate.ToString("MMM dd, yyyy HH:mm")</p>
+                </div>
+            </div>
+
+            @if (User.IsInRole("Staff") || User.IsInRole("Manager"))
+            {
+                <hr>
+                <h5 class="mb-3">Update Status (Staff Only)</h5>
+                <form asp-action="UpdateStatus" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div class="btn-group-vertical btn-group-lg w-100" role="group">
+                        <button type="submit" name="status" value="Completed" class="btn btn-success mb-2">
+                            <i class="fas fa-check-circle me-2"></i> Mark as Completed ✓
+                        </button>
+                        <button type="submit" name="status" value="Pending" class="btn btn-warning mb-2">
+                            <i class="fas fa-clock me-2"></i> Mark as Pending
+                        </button>
+                        <button type="submit" name="status" value="Failed" class="btn btn-danger mb-2">
+                            <i class="fas fa-times-circle me-2"></i> Mark as Failed
+                        </button>
+                        <button type="submit" name="status" value="Refunded" class="btn btn-info">
+                            <i class="fas fa-undo me-2"></i> Mark as Refunded
+                        </button>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Updating payment status will automatically update the associated booking status.
+                    </small>
+                </form>
+            }
+
+            <div class="mt-4">
+                <a asp-action="Index" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Back to Payments
+                </a>
+                @if (Model.Appointment != null)
+                {
+                    <a asp-controller="Appointments" asp-action="Details" asp-route-id="@Model.AppointmentId" class="btn btn-outline-info">
+                        <i class="fas fa-calendar"></i> View Booking
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

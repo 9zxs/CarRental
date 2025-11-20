@@ -1,0 +1,280 @@
+@{
+    ViewData["Title"] = "Sales Reports - DriveLuxe";
+    var report = ViewBag.Report as dynamic;
+    var startDate = ViewBag.StartDate as DateTime? ?? DateTime.UtcNow.AddMonths(-1);
+    var endDate = ViewBag.EndDate as DateTime? ?? DateTime.UtcNow;
+}
+
+@section Styles {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    :root {
+        --primary: #135bec;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] h5:not(.card h5) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .card-header,
+    [data-theme="dark"] .table-responsive,
+    [data-theme="dark"] .table,
+    [data-theme="dark"] .table thead,
+    [data-theme="dark"] .table tbody {
+        background-color: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card-header.bg-white {
+        background-color: white !important;
+    }
+    
+    [data-theme="dark"] .table th,
+    [data-theme="dark"] .table td {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card *,
+    [data-theme="dark"] .table * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted,
+    [data-theme="dark"] .table .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Form elements in white cards */
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-select,
+    [data-theme="dark"] .card label {
+        background-color: white !important;
+        border-color: #d1d5db !important;
+        color: #1f2937 !important;
+    }
+</style>
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">assessment</span>
+            Sales Reports
+        </h2>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-4">
+            <form method="post" id="filterForm" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label fw-medium">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">calendar_today</span>
+                        Start Date
+                    </label>
+                    <input type="date" name="startDate" id="startDateInput" class="form-control" value="@startDate.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label fw-medium">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">event</span>
+                        End Date
+                    </label>
+                    <input type="date" name="endDate" id="endDateInput" class="form-control" value="@endDate.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">filter_alt</span>
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (report != null)
+    {
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body text-center">
+                        <div class="display-4 fw-bold text-primary mb-2">@report.TotalBookings</div>
+                        <div class="text-muted">Total Bookings</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body text-center">
+                        <div class="display-4 fw-bold text-success mb-2">RM @(report.TotalRevenue?.ToString("N2") ?? "0.00")</div>
+                        <div class="text-muted">Total Revenue</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body text-center">
+                        <div class="display-4 fw-bold text-warning mb-2">
+                            @{
+                                var revenueByStatus = report?.RevenueByStatus as IEnumerable<dynamic>;
+                                var statusCount = revenueByStatus != null ? revenueByStatus.Count() : 0;
+                            }
+                            @statusCount
+                        </div>
+                        <div class="text-muted">Status Types</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body text-center">
+                        <div class="display-4 fw-bold text-info mb-2">
+                            @{
+                                var topCars = report?.TopCars as IEnumerable<dynamic>;
+                                var carCount = topCars != null ? topCars.Count() : 0;
+                            }
+                            @carCount
+                        </div>
+                        <div class="text-muted">Top Cars</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 fw-bold">Bookings by Day</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="bookingsChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0 fw-bold">Top Cars</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Car</th>
+                                        <th class="text-end">Bookings</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var car in (report?.TopCars as IEnumerable<dynamic>) ?? Enumerable.Empty<dynamic>())
+                                    {
+                                        <tr>
+                                            <td>@(car?.Car?.ToString() ?? "Unknown")</td>
+                                            <td class="text-end fw-bold">@(car?.Count?.ToString() ?? "0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const bookingsCtx = document.getElementById('bookingsChart');
+        if (bookingsCtx) {
+            @{
+                var bookingsByDay = report?.BookingsByDay as IEnumerable<dynamic>;
+                string[] bookingLabels = Array.Empty<string>();
+                int[] bookingCounts = Array.Empty<int>();
+                
+                if (bookingsByDay != null)
+                {
+                    bookingLabels = bookingsByDay.Select(d => ((DateTime)d.Date).ToString("MMM dd")).ToArray();
+                    bookingCounts = bookingsByDay.Select(d => (int)d.Count).ToArray();
+                }
+            }
+            new Chart(bookingsCtx, {
+                type: 'line',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(bookingLabels)),
+                    datasets: [{
+                        label: 'Bookings',
+                        data: @Html.Raw(Json.Serialize(bookingCounts)),
+                        borderColor: 'rgb(19, 91, 236)',
+                        backgroundColor: 'rgba(19, 91, 236, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Auto-filter when dates change - no need to click filter button
+        (function() {
+            const startDateInput = document.getElementById('startDateInput');
+            const endDateInput = document.getElementById('endDateInput');
+            const filterForm = document.getElementById('filterForm');
+
+            function performFilter() {
+                const startDate = startDateInput?.value;
+                const endDate = endDateInput?.value;
+                
+                // Only submit if both dates are selected
+                if (startDate && endDate) {
+                    // Validate date range
+                    if (new Date(startDate) > new Date(endDate)) {
+                        alert('Start date cannot be after end date!');
+                        return;
+                    }
+                    filterForm.submit();
+                }
+            }
+
+            // Auto-submit when dates change - immediate, no delay
+            if (startDateInput) {
+                startDateInput.addEventListener('change', performFilter);
+            }
+
+            if (endDateInput) {
+                endDateInput.addEventListener('change', performFilter);
+            }
+        })();
+    </script>
+}
+

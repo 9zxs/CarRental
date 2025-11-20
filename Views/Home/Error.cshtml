@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "Error";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card {
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Keep colored headers white */
+    [data-theme="dark"] .bg-danger,
+    [data-theme="dark"] .bg-danger * {
+        color: white !important;
+    }
+    
+    [data-theme="dark"] .bg-light {
+        background: #f9fafb !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .text-danger {
+        color: #dc2626 !important;
+    }
+</style>
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Error</h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-danger">An error occurred while processing your request.</h4>
+                    
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger mt-3">
+                            <strong>Error Message:</strong>
+                            <p class="mb-0">@ViewBag.ErrorMessage</p>
+                        </div>
+                    }
+                    
+                    @if (ViewBag.ErrorDetails != null && !string.IsNullOrEmpty(ViewBag.ErrorDetails.ToString()))
+                    {
+                        <details class="mt-3">
+                            <summary class="text-muted">Error Details (Click to expand)</summary>
+                            <pre class="mt-2 p-3 bg-light border rounded small">@ViewBag.ErrorDetails</pre>
+                        </details>
+                    }
+                    
+                    @if (ViewBag.RequestId != null)
+                    {
+                        <p class="mt-3 text-muted small">
+                            <strong>Request ID:</strong> @ViewBag.RequestId
+                        </p>
+                    }
+                    
+                    <div class="mt-4">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                            <i class="bi bi-house"></i> Return to Home
+                        </a>
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Go Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,234 @@
+@model IEnumerable<Review>
+@{
+    ViewData["Title"] = "Reviews - DriveLuxe";
+    var car = ViewBag.Car as Car;
+    var averageRating = ViewBag.AverageRating as double? ?? 0;
+    var totalReviews = ViewBag.TotalReviews as int? ?? 0;
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --warning: #f59e0b;
+        --dark: #1f2937;
+        --light: #f9fafb;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--light);
+    }
+
+    .review-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        transform-style: preserve-3d;
+    }
+
+    .review-card:hover {
+        transform: translateY(-8px) rotateX(2deg) rotateY(2deg);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .rating-stars {
+        color: var(--warning);
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.review-card h1):not(.card h1),
+    [data-theme="dark"] h2:not(.review-card h2):not(.card h2),
+    [data-theme="dark"] h3:not(.review-card h3):not(.card h3),
+    [data-theme="dark"] p:not(.review-card p):not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White review cards in dark mode need dark text */
+    [data-theme="dark"] .review-card,
+    [data-theme="dark"] .card:not([class*="bg-"]) {
+        background: white !important;
+        border-color: #e5e7eb !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .review-card *,
+    [data-theme="dark"] .card:not([class*="bg-"]) * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .review-card .text-muted,
+    [data-theme="dark"] .card:not([class*="bg-"]) .text-muted {
+        color: #6b7280 !important;
+    }
+</style>
+}
+
+<div class="container py-5">
+    @if (car != null)
+    {
+        <div class="card border-0 shadow-sm mb-5 card-3d">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="fw-bold mb-2">@car.DisplayName</h3>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="d-flex align-items-center">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span class="material-symbols-outlined rating-stars" 
+                                          style="font-size: 1.5rem; @(i <= Math.Round((double)averageRating, 0) ? "font-variation-settings: 'FILL' 1;" : "")">star</span>
+                                }
+                            </div>
+                            <p class="mb-0 fw-semibold">@averageRating.ToString("F1")</p>
+                            <p class="mb-0 text-muted">(@totalReviews reviews)</p>
+                        </div>
+                        <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.Id" 
+                           class="btn btn-outline-primary rounded-2">
+                            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">arrow_back</span>
+                            Back to Car Details
+                        </a>
+                    </div>
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <a asp-action="Create" asp-route-carId="@car.Id" 
+                               class="btn btn-primary rounded-2 fw-bold px-4">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">rate_review</span>
+                                Write a Review
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="mb-5">
+            <h1 class="mb-1 fw-bold" style="font-size: 2rem;">All Reviews</h1>
+            <p class="text-muted mb-0">Read what our customers say</p>
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">check_circle</span>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">error</span>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    
+    @if (TempData["InfoMessage"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">info</span>
+            @TempData["InfoMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var review in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="review-card card-3d">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h6 class="fw-bold mb-1">
+                                        @if (review.User != null)
+                                        {
+                                            @(review.User.FirstName + " " + review.User.LastName)
+                                        }
+                                        else
+                                        {
+                                            <text>Anonymous</text>
+                                        }
+                                    </h6>
+                                    <div class="d-flex align-items-center gap-1 mb-2">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <span class="material-symbols-outlined rating-stars" 
+                                                  style="font-size: 1.25rem; @(i <= review.Rating ? "font-variation-settings: 'FILL' 1;" : "")">star</span>
+                                        }
+                                    </div>
+                                </div>
+                                <small class="text-muted">@review.CreatedAt.ToString("MMM dd, yyyy")</small>
+                            </div>
+                            @if (!string.IsNullOrEmpty(review.Comment))
+                            {
+                                <p class="mb-3">@review.Comment</p>
+                            }
+                            @if (review.Car != null && car == null)
+                            {
+                                <p class="small text-muted mb-3">
+                                    <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">directions_car</span>
+                                    <a asp-controller="Cars" asp-action="Details" asp-route-id="@review.CarId" class="text-decoration-none">@review.Car.DisplayName</a>
+                                </p>
+                            }
+                            @if (User.Identity!.IsAuthenticated && review.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                            {
+                                <div class="d-flex gap-2">
+                                    <a asp-action="Edit" asp-route-id="@review.Id" 
+                                       class="btn btn-outline-primary btn-sm rounded-2">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">edit</span>
+                                        Edit
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@review.Id" method="post" class="d-inline" 
+                                          onsubmit="return confirm('Are you sure you want to delete this review?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-2">
+                                            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">delete</span>
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined mb-3" style="font-size: 4rem; color: #d1d5db;">rate_review</span>
+            <h3 class="fw-bold mb-2">No Reviews Yet</h3>
+            <p class="text-muted mb-4">Be the first to review@(car != null ? " this car" : "")!</p>
+            @if (car != null && User.Identity!.IsAuthenticated)
+            {
+                <a asp-action="Create" asp-route-carId="@car.Id" 
+                   class="btn btn-primary rounded-2 fw-bold px-4">
+                    <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">rate_review</span>
+                    Write the First Review
+                </a>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,361 @@
+@model IEnumerable<Notification>
+@{
+    ViewData["Title"] = "Notifications - DriveLuxe";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --dark: #1f2937;
+        --light: #f9fafb;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--light);
+    }
+
+    .notification-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--primary);
+    }
+
+    .notification-card.unread {
+        background: #f0f9ff;
+        border-left-color: var(--primary);
+    }
+
+    .notification-card.read {
+        background: white;
+        border-left-color: #e5e7eb;
+        opacity: 0.8;
+    }
+
+    .notification-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .notification-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .notification-icon.success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
+
+    .notification-icon.info {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info);
+    }
+
+    .notification-icon.warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .notification-icon.danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.notification-card h1):not(.card h1),
+    [data-theme="dark"] h2:not(.notification-card h2),
+    [data-theme="dark"] h3:not(.notification-card h3):not(.card h3),
+    [data-theme="dark"] h6:not(.notification-card h6),
+    [data-theme="dark"] p:not(.notification-card p):not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White notification cards in dark mode need dark text */
+    [data-theme="dark"] .notification-card {
+        background: white !important;
+        border-color: #e5e7eb !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .notification-card.unread {
+        background: #f0f9ff !important;
+        border-left-color: var(--primary, #135bec) !important;
+    }
+    
+    [data-theme="dark"] .notification-card.read {
+        background: white !important;
+        border-left-color: #e5e7eb !important;
+        opacity: 0.8;
+    }
+    
+    [data-theme="dark"] .notification-card *:not(.notification-icon):not(.notification-icon *),
+    [data-theme="dark"] .card-body *:not(.notification-icon):not(.notification-icon *) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .notification-card .text-muted,
+    [data-theme="dark"] .notification-card small.text-muted,
+    [data-theme="dark"] .card-body .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* CRITICAL: Notification icons must be visible - override all other rules */
+    [data-theme="dark"] .notification-icon {
+        background-color: inherit !important;
+    }
+    
+    [data-theme="dark"] .notification-icon.success {
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: var(--success, #10b981) !important;
+    }
+    
+    [data-theme="dark"] .notification-icon.success .material-symbols-outlined {
+        color: var(--success, #10b981) !important;
+    }
+    
+    [data-theme="dark"] .notification-icon.info {
+        background: rgba(59, 130, 246, 0.1) !important;
+        color: var(--info, #3b82f6) !important;
+    }
+    
+    [data-theme="dark"] .notification-icon.info .material-symbols-outlined {
+        color: var(--info, #3b82f6) !important;
+    }
+    
+    [data-theme="dark"] .notification-icon.warning {
+        background: rgba(245, 158, 11, 0.1) !important;
+        color: var(--warning, #f59e0b) !important;
+    }
+    
+    [data-theme="dark"] .notification-icon.warning .material-symbols-outlined {
+        color: var(--warning, #f59e0b) !important;
+    }
+    
+    [data-theme="dark"] .notification-icon.danger {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: var(--danger, #ef4444) !important;
+    }
+    
+    [data-theme="dark"] .notification-icon.danger .material-symbols-outlined {
+        color: var(--danger, #ef4444) !important;
+    }
+    
+    /* Ensure all material symbols in notification icons are visible */
+    [data-theme="dark"] .notification-icon .material-symbols-outlined {
+        color: inherit !important;
+    }
+    
+    /* Empty state text */
+    [data-theme="dark"] .text-center h3,
+    [data-theme="dark"] .text-center p {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .text-center .text-muted {
+        color: #6b7280 !important;
+    }
+</style>
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="mb-1 fw-bold" style="font-size: 2rem;">Notifications</h1>
+            <p class="text-muted mb-0">Stay updated with your latest activities</p>
+        </div>
+        @if (Model.Any(n => !n.IsRead))
+        {
+            <button class="btn btn-primary rounded-2 fw-bold" onclick="markAllAsRead()">
+                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">done_all</span>
+                Mark All as Read
+            </button>
+        }
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var notification in Model)
+            {
+                <div class="col-12">
+                    <div class="notification-card @(notification.IsRead ? "read" : "unread")" data-notification-id="@notification.Id">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="notification-icon @(notification.Type?.ToLower() ?? "info")">
+                                    @if (notification.Type == "Success")
+                                    {
+                                        <span class="material-symbols-outlined">check_circle</span>
+                                    }
+                                    else if (notification.Type == "Warning")
+                                    {
+                                        <span class="material-symbols-outlined">warning</span>
+                                    }
+                                    else if (notification.Type == "Danger")
+                                    {
+                                        <span class="material-symbols-outlined">error</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined">info</span>
+                                    }
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-0 fw-bold">
+                                            @if (!notification.IsRead)
+                                            {
+                                                <span class="badge bg-danger me-2">New</span>
+                                            }
+                                            @notification.Title
+                                        </h6>
+                                        <small class="text-muted">@notification.CreatedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                    </div>
+                                    <p class="mb-0 text-muted">@notification.Message</p>
+                                </div>
+                                @if (!notification.IsRead)
+                                {
+                                    <button class="btn btn-sm btn-outline-primary rounded-2" onclick="markAsRead(@notification.Id)">
+                                        <span class="material-symbols-outlined" style="font-size: 1rem;">done</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined mb-3" style="font-size: 4rem; color: #d1d5db;">notifications_none</span>
+            <h3 class="fw-bold mb-2">No Notifications</h3>
+            <p class="text-muted mb-0">You're all caught up!</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    <script>
+        function getToken() {
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            return tokenInput ? tokenInput.value : '';
+        }
+
+        function markAsRead(id) {
+            const token = getToken();
+            fetch('/Notifications/MarkAsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(id)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update UI without reload
+                    const notificationCard = document.querySelector(`[data-notification-id="${id}"]`);
+                    if (notificationCard) {
+                        notificationCard.classList.remove('unread');
+                        notificationCard.classList.add('read');
+                        const badge = notificationCard.querySelector('.badge');
+                        if (badge) badge.remove();
+                        const markBtn = notificationCard.querySelector(`button[onclick*="${id}"]`);
+                        if (markBtn) markBtn.remove();
+                    }
+                    
+                    // Update unread count if exists
+                    updateUnreadCount();
+                } else {
+                    console.error('Failed to mark as read:', data);
+                    alert('Failed to mark notification as read. Please refresh the page.');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking as read:', error);
+                alert('An error occurred. Please try again or refresh the page.');
+            });
+        }
+
+        function markAllAsRead() {
+            const token = getToken();
+            fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to mark all as read. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error marking all as read:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+
+        function updateUnreadCount() {
+            fetch('/Notifications/GetUnreadCount')
+                .then(response => response.json())
+                .then(data => {
+                    // Update notification badge in header if exists
+                    const badge = document.querySelector('.notification-badge');
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.textContent = data.count;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(err => console.error('Error updating unread count:', err));
+        }
+    </script>
+}
+

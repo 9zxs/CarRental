@@ -1,0 +1,607 @@
+@using CarRentalSystem.Models
+@model Appointment
+@{
+    ViewData["Title"] = "Booking Summary - DriveLuxe";
+    var payment = ViewBag.Payment as Payment;
+    var hasPayment = ViewBag.HasPayment as bool? ?? false;
+    var rentalDuration = Model.EndDate - Model.StartDate;
+    var totalHours = rentalDuration.TotalHours;
+    var days = totalHours <= 0 ? 1 : (int)Math.Ceiling(totalHours / 24.0);
+    var hours = rentalDuration.Hours;
+    var isValidDateRange = Model.EndDate > Model.StartDate;
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --primary-dark: #0d4ab8;
+        --primary-light: #4d7df0;
+        --background-light: #f6f6f8;
+        --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--background-light);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .booking-summary-card {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        border: none;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .booking-summary-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient);
+    }
+
+    .header-section {
+        text-align: center;
+        padding: 3rem 2rem 2rem;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+        position: relative;
+    }
+
+    .status-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--gradient);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); }
+        50% { transform: scale(1.05); box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5); }
+    }
+
+    .status-icon .material-symbols-outlined {
+        font-size: 3rem;
+        color: white;
+    }
+
+    .car-image-wrapper {
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+    }
+
+    .car-image-wrapper:hover {
+        transform: scale(1.02);
+    }
+
+    .date-section {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .date-box {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .date-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .date-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .date-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .time-value {
+        font-size: 0.875rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .duration-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--gradient);
+        color: white;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-top: 1rem;
+    }
+
+    .price-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 1.5rem;
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .total-price {
+        font-size: 3rem;
+        font-weight: 900;
+        line-height: 1;
+        margin: 0.5rem 0;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .price-label {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+
+    .price-subtitle {
+        font-size: 0.875rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
+    }
+
+    .btn-confirm {
+        width: 100%;
+        height: 56px;
+        background: var(--gradient);
+        border: none;
+        border-radius: 1rem;
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-confirm::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn-confirm:hover::before {
+        left: 100%;
+    }
+
+    .btn-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+
+    .alert-enhanced {
+        border-radius: 1rem;
+        border: none;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .invalid-date-warning {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-left: 4px solid #ef4444;
+        color: #991b1b;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        margin: 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .info-value {
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.booking-summary-card h1):not(.info-card h1):not(.date-box h1),
+    [data-theme="dark"] h2:not(.booking-summary-card h2):not(.info-card h2),
+    [data-theme="dark"] h6:not(.booking-summary-card h6):not(.info-card h6),
+    [data-theme="dark"] p:not(.booking-summary-card p):not(.info-card p):not(.date-box p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .booking-summary-card,
+    [data-theme="dark"] .info-card,
+    [data-theme="dark"] .date-box {
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .booking-summary-card *:not(.header-section):not(.header-section *):not(.price-section):not(.price-section *),
+    [data-theme="dark"] .info-card *,
+    [data-theme="dark"] .date-box * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .date-value,
+    [data-theme="dark"] .info-value {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .booking-summary-card .text-muted,
+    [data-theme="dark"] .info-card .text-muted,
+    [data-theme="dark"] .date-box .text-muted,
+    [data-theme="dark"] .date-label,
+    [data-theme="dark"] .info-label,
+    [data-theme="dark"] .time-value {
+        color: #6b7280 !important;
+    }
+    
+    /* Keep white text on colored backgrounds */
+    [data-theme="dark"] .price-section,
+    [data-theme="dark"] .price-section *,
+    [data-theme="dark"] .header-section,
+    [data-theme="dark"] .header-section * {
+        color: white !important;
+    }
+</style>
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                    <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">check_circle</span>
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                    <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">error</span>
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            <div class="booking-summary-card">
+                <div class="header-section">
+                    <div class="status-icon">
+                        @if (Model.Status == "Confirmed" || (hasPayment && payment?.Status == "Completed"))
+                        {
+                            <span class="material-symbols-outlined">check_circle</span>
+                        }
+                        else if (Model.Status == "Completed")
+                        {
+                            <span class="material-symbols-outlined">done_all</span>
+                        }
+                        else
+                        {
+                            <span class="material-symbols-outlined">schedule</span>
+                        }
+                    </div>
+                    <h1 class="fw-bold mb-2" style="font-size: 2rem; color: #1f2937;">Confirm Your Booking</h1>
+                    <p class="text-muted mb-0">Review the details of your rental below</p>
+                </div>
+
+                <div class="card-body p-5">
+                    @if (!isValidDateRange)
+                    {
+                        <div class="invalid-date-warning">
+                            <span class="material-symbols-outlined" style="font-size: 2rem;">warning</span>
+                            <div>
+                                <strong>Invalid Date Range!</strong><br>
+                                <small>Return date must be after pickup date. Please contact support to update your booking.</small>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Car Information -->
+                    <div class="row align-items-center mb-4">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="car-image-wrapper">
+                                <img src="@(Model.Car?.ImageUrl ?? "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400")" 
+                                     alt="@Model.Car?.DisplayName" 
+                                     class="w-100"
+                                     style="aspect-ratio: 16/9; object-fit: cover;">
+                            </div>
+                        </div>
+                        <div class="col-md-8 text-center text-md-start">
+                            <h2 class="fw-bold mb-2" style="font-size: 1.75rem; color: #1f2937;">
+                                @(Model.Car?.DisplayName ?? "Vehicle")
+                            </h2>
+                            <p class="text-muted mb-3">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">category</span>
+                                @(Model.Car?.Category?.Name ?? "Sedan")
+                            </p>
+                            @if (Model.Car?.IsElectric == true)
+                            {
+                                <span class="badge bg-success mb-2" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                                    <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">bolt</span>
+                                    Electric Vehicle
+                                </span>
+                            }
+                            <p class="text-muted small mb-0 mt-2">
+                                <span class="material-symbols-outlined me-1" style="font-size: 0.875rem; vertical-align: middle;">location_on</span>
+                                @Model.Car?.City, @Model.Car?.State
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Date Information -->
+                    <div class="date-section">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="date-box">
+                                    <div class="date-label">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 0.875rem; vertical-align: middle;">schedule</span>
+                                        Pickup
+                                    </div>
+                                    <div class="date-value">
+                                        @Model.StartDate.ToString("ddd, MMM dd, yyyy")
+                                    </div>
+                                    <div class="time-value">
+                                        @Model.StartDate.ToString("h:mm tt")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="date-box @(!isValidDateRange ? "border border-danger" : "")">
+                                    <div class="date-label @(!isValidDateRange ? "text-danger" : "")">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 0.875rem; vertical-align: middle;">schedule</span>
+                                        Return
+                                    </div>
+                                    <div class="date-value @(!isValidDateRange ? "text-danger" : "")">
+                                        @Model.EndDate.ToString("ddd, MMM dd, yyyy")
+                                    </div>
+                                    <div class="time-value @(!isValidDateRange ? "text-danger" : "")">
+                                        @Model.EndDate.ToString("h:mm tt")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (isValidDateRange)
+                        {
+                            <div class="text-center">
+                                <div class="duration-badge">
+                                    <span class="material-symbols-outlined" style="font-size: 1rem;">access_time</span>
+                                    <span>@days day(s) @hours hour(s)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Booking Details -->
+                    <div class="info-card">
+                        <h6 class="fw-bold mb-3" style="color: #1f2937;">
+                            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">info</span>
+                            Booking Information
+                        </h6>
+                        <div class="info-item">
+                            <span class="info-label">Booking ID</span>
+                            <span class="info-value">#@Model.Id</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status</span>
+                            <span class="badge 
+                                @(Model.Status == "Confirmed" ? "bg-success" : 
+                                  Model.Status == "Completed" ? "bg-info" : 
+                                  Model.Status == "Cancelled" ? "bg-danger" : "bg-warning") 
+                                px-3 py-2">
+                                @Model.Status
+                            </span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.CustomerName))
+                        {
+                            <div class="info-item">
+                                <span class="info-label">Customer</span>
+                                <span class="info-value">@Model.CustomerName</span>
+                            </div>
+                        }
+                        @if (Model.DiscountAmount.HasValue && Model.DiscountAmount > 0)
+                        {
+                            <div class="info-item">
+                                <span class="info-label">Discount</span>
+                                <span class="info-value text-success">-RM @Model.DiscountAmount.Value.ToString("F2")</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Price Section -->
+                    <div class="price-section text-center">
+                        <div class="price-label">Total Cost</div>
+                        <div class="total-price">RM @Model.TotalPrice.ToString("F2")</div>
+                        <div class="price-subtitle">Includes all taxes and fees</div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    @if (Model.Status == "Pending" && !hasPayment)
+                    {
+                        <a asp-controller="Payments" asp-action="Create" asp-route-appointmentId="@Model.Id" 
+                           class="btn btn-confirm d-flex align-items-center justify-content-center">
+                            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem;">payment</span>
+                            Confirm Reservation & Pay
+                        </a>
+                    }
+                    else if (hasPayment && payment != null)
+                    {
+                        @if (payment.Status == "Completed")
+                        {
+                            <div class="alert alert-success alert-enhanced d-flex align-items-start">
+                                <span class="material-symbols-outlined me-3" style="font-size: 2rem;">check_circle</span>
+                                <div class="flex-grow-1">
+                                    <h5 class="fw-bold mb-2">Payment Confirmed!</h5>
+                                    <p class="mb-2">Your booking has been confirmed successfully.</p>
+                                    <p class="mb-0 small">
+                                        <strong>Transaction ID:</strong> @(payment.TransactionId ?? payment.Id.ToString())<br>
+                                        <strong>Payment Date:</strong> @payment.PaymentDate.ToString("MMM dd, yyyy h:mm tt")
+                                    </p>
+                                </div>
+                            </div>
+                            <a asp-controller="Payments" asp-action="Details" asp-route-id="@payment.Id" 
+                               class="btn btn-outline-success w-100 rounded-2 fw-bold mt-3" style="height: 48px;">
+                                <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">receipt</span>
+                                View Payment Receipt
+                            </a>
+                        }
+                        else if (payment.Status == "Pending")
+                        {
+                            <div class="alert alert-warning alert-enhanced d-flex align-items-start">
+                                <span class="material-symbols-outlined me-3" style="font-size: 2rem;">schedule</span>
+                                <div class="flex-grow-1">
+                                    <h5 class="fw-bold mb-2">Payment Pending</h5>
+                                    <p class="mb-0">Your payment is being processed. Please wait for confirmation.</p>
+                                </div>
+                            </div>
+                            <a asp-controller="Payments" asp-action="Details" asp-route-id="@payment.Id" 
+                               class="btn btn-outline-primary w-100 rounded-2 fw-bold mt-3" style="height: 48px;">
+                                <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">visibility</span>
+                                View Payment Details
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info alert-enhanced">
+                                <span class="material-symbols-outlined me-2" style="font-size: 1.5rem; vertical-align: middle;">info</span>
+                                <strong>Payment Status:</strong> @payment.Status<br>
+                                <strong>Booking Status:</strong> @Model.Status
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info alert-enhanced">
+                            <span class="material-symbols-outlined me-2" style="font-size: 1.5rem; vertical-align: middle;">info</span>
+                            <strong>Booking Status:</strong> @Model.Status
+                        </div>
+                    }
+
+                    <p class="text-center text-muted small mt-4 mb-0">
+                        By confirming, you agree to our 
+                        <a href="#" class="fw-medium text-primary text-decoration-none">Terms</a> and 
+                        <a href="#" class="fw-medium text-primary text-decoration-none">Cancellation Policy</a>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex justify-content-center gap-3">
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-2 px-4" style="height: 48px;">
+                    <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">arrow_back</span>
+                    Back to My Bookings
+                </a>
+                
+                @if (Model.Status != "Cancelled" && Model.Status != "Completed")
+                {
+                    var hoursUntilPickup = (Model.StartDate - DateTime.UtcNow).TotalHours;
+                    var canCancel = hoursUntilPickup >= 48;
+                    
+                    <form asp-action="Cancel" method="post" class="d-inline" onsubmit="return confirmCancel(@canCancel.ToString().ToLower());">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-outline-danger rounded-2 px-4" style="height: 48px;">
+                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">cancel</span>
+                            Cancel Booking
+                        </button>
+                    </form>
+                    
+                    @if (Model.Status == "Pending" && (!hasPayment || (payment != null && payment.Status != "Completed")))
+                    {
+                        <a asp-controller="Payments" asp-action="Create" asp-route-appointmentId="@Model.Id" 
+                           class="btn btn-success rounded-2 px-4" style="height: 48px;">
+                            <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">payments</span>
+                            Proceed to Payment
+                        </a>
+                    }
+                    
+                    <a asp-action="Rebook" asp-route-id="@Model.Id" class="btn btn-outline-primary rounded-2 px-4" style="height: 48px;">
+                        <span class="material-symbols-outlined me-2" style="font-size: 1.1rem; vertical-align: middle;">refresh</span>
+                        Rebook
+                    </a>
+                }
+            </div>
+            
+            <script>
+                function confirmCancel(canCancelFree) {
+                    var message = canCancelFree 
+                        ? 'Are you sure you want to cancel this booking?\n\nFree cancellation applies (48+ hours before pickup). A full refund will be processed if payment was made.\n\nClick OK to proceed with cancellation.'
+                        : 'Are you sure you want to cancel this booking?\n\nNote: Cancellation within 48 hours of pickup may be subject to cancellation fees. Please check cancellation policy.\n\nClick OK to proceed with cancellation.';
+                    return confirm(message);
+                }
+            </script>
+        </div>
+    </div>
+</div>

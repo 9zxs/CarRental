@@ -1,0 +1,277 @@
+@model IEnumerable<Car>
+@{
+    ViewData["Title"] = "Vehicle Management - DriveLuxe";
+    var stats = ViewBag.Stats as dynamic;
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+    var status = ViewBag.Status as string ?? "All";
+    var state = ViewBag.State as string;
+    var states = ViewBag.States as List<string> ?? new List<string>();
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+    }
+    
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.card h1),
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .stats-card,
+    [data-theme="dark"] .vehicle-card,
+    [data-theme="dark"] .card {
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .stats-card *,
+    [data-theme="dark"] .vehicle-card *,
+    [data-theme="dark"] .card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .stats-card .text-muted,
+    [data-theme="dark"] .vehicle-card .text-muted,
+    [data-theme="dark"] .card .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Form elements in white cards */
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-select {
+        background-color: white !important;
+        border-color: #d1d5db !important;
+        color: #1f2937 !important;
+    }
+    
+    .stats-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .vehicle-card {
+        border: none;
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .vehicle-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+</style>
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1 fw-bold">Vehicle Management</h1>
+            <p class="text-muted mb-0">Manage your fleet inventory</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Create" class="btn btn-primary">
+                <span class="material-symbols-outlined me-2">add</span>Add Vehicle
+            </a>
+            <a asp-controller="Cars" asp-action="Index" class="btn btn-outline-primary">
+                <span class="material-symbols-outlined me-2">visibility</span>View Public
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stats-card card text-center p-4">
+                <h3 class="text-primary mb-2">@(stats?.TotalVehicles ?? 0)</h3>
+                <p class="text-muted mb-0">Total Vehicles</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card card text-center p-4">
+                <h3 class="text-success mb-2">@(stats?.AvailableVehicles ?? 0)</h3>
+                <p class="text-muted mb-0">Available</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card card text-center p-4">
+                <h3 class="text-danger mb-2">@(stats?.UnavailableVehicles ?? 0)</h3>
+                <p class="text-muted mb-0">Unavailable</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card card text-center p-4">
+                <h3 class="text-info mb-2">@(stats?.ElectricVehicles ?? 0)</h3>
+                <p class="text-muted mb-0">Electric Vehicles</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="card shadow-sm mb-4 border-0" style="border-radius: 1rem;">
+        <div class="card-body p-4">
+            <form method="get" id="searchForm" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">search</span>
+                        Search Vehicles
+                    </label>
+                    <input type="text" name="searchTerm" id="searchInput" class="form-control" placeholder="Search by make, model, or license..." value="@searchTerm" autocomplete="off">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Status</label>
+                    <select name="status" id="statusFilter" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="Available" selected="@(status == "Available")">Available</option>
+                        <option value="Unavailable" selected="@(status == "Unavailable")">Unavailable</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">State</label>
+                    <select name="state" id="stateFilter" class="form-select">
+                        <option value="">All States</option>
+                        @foreach (var s in states)
+                        {
+                            <option value="@s" selected="@(s == state)">@s</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <span class="material-symbols-outlined me-1">search</span>Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vehicle List -->
+    <div class="row g-4">
+        @foreach (var vehicle in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="vehicle-card card h-100 shadow-sm">
+                    <div class="position-relative">
+                        <img src="@(vehicle.ImageUrl ?? "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800")" 
+                             class="card-img-top" 
+                             alt="@vehicle.DisplayName"
+                             style="height: 200px; object-fit: cover;">
+                        <span class="badge @(vehicle.IsAvailable ? "bg-success" : "bg-danger") position-absolute top-0 end-0 m-2">
+                            @(vehicle.IsAvailable ? "Available" : "Unavailable")
+                        </span>
+                        @if (vehicle.IsElectric)
+                        {
+                            <span class="badge bg-info position-absolute top-0 start-0 m-2">
+                                <i class="fas fa-bolt"></i> EV
+                            </span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">@vehicle.DisplayName</h5>
+                        <p class="text-muted small mb-2">
+                            <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">location_on</span>
+                            @vehicle.State, @vehicle.City
+                        </p>
+                        <p class="text-muted small mb-3">
+                            <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">confirmation_number</span>
+                            @vehicle.LicensePlate
+                        </p>
+                        <div class="d-flex flex-column gap-2">
+                            <div>
+                                <span class="h5 mb-0 fw-bold text-primary">RM @vehicle.DailyRate</span>
+                                <span class="text-muted small">/day</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Edit" asp-route-id="@vehicle.Id" 
+                                   class="btn btn-sm btn-outline-primary flex-fill">
+                                    <span class="material-symbols-outlined me-1" style="font-size: 16px; vertical-align: middle;">edit</span>
+                                    Edit
+                                </a>
+                                <form asp-action="ToggleVehicleStatus" method="post" class="d-inline flex-fill">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="carId" value="@vehicle.Id" />
+                                    <button type="submit" class="btn btn-sm w-100 @(vehicle.IsAvailable ? "btn-warning" : "btn-success")">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 16px; vertical-align: middle;">
+                                            @(vehicle.IsAvailable ? "block" : "check_circle")
+                                        </span>
+                                        @(vehicle.IsAvailable ? "Unavailable" : "Available")
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <span class="material-symbols-outlined mb-2" style="font-size: 3rem;">directions_car</span>
+            <h4>No vehicles found</h4>
+            <p>Try adjusting your search filters.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    // Auto-submit on change - no need to click search button
+    (function() {
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const stateFilter = document.getElementById('stateFilter');
+        const searchForm = document.getElementById('searchForm');
+
+        // Search on Enter key or blur (lose focus)
+        if (searchInput && searchForm) {
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchForm.submit();
+                }
+            });
+            searchInput.addEventListener('blur', function() {
+                searchForm.submit();
+            });
+        }
+
+        // Auto-submit when filters change - immediate, no delay
+        if (statusFilter) {
+            statusFilter.addEventListener('change', function() {
+                searchForm.submit();
+            });
+        }
+
+        if (stateFilter) {
+            stateFilter.addEventListener('change', function() {
+                searchForm.submit();
+            });
+        }
+    })();
+</script>
+}
+

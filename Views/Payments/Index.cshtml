@@ -1,0 +1,227 @@
+@using CarRentalSystem.Models
+@model IEnumerable<Payment>
+@{
+    ViewData["Title"] = "Payment History - DriveLuxe";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --dark: #1f2937;
+        --light: #f9fafb;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--light);
+    }
+
+    .payment-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .payment-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        color: white;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-badge.completed {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        font-weight: 600;
+    }
+
+    .status-badge.pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
+
+    .status-badge.failed {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+
+    .status-badge.refunded {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info);
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.payment-card h1),
+    [data-theme="dark"] h2:not(.payment-card h2),
+    [data-theme="dark"] h3:not(.payment-card h3),
+    [data-theme="dark"] p:not(.payment-card p):not(.payment-header p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White payment cards in dark mode need dark text */
+    [data-theme="dark"] .payment-card {
+        background: white !important;
+        border-color: #e5e7eb !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .payment-card *:not(.payment-header):not(.payment-header *) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .payment-card .text-muted,
+    [data-theme="dark"] .payment-card .card-body .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Keep white text on colored payment headers */
+    [data-theme="dark"] .payment-header,
+    [data-theme="dark"] .payment-header * {
+        color: white !important;
+    }
+</style>
+}
+
+<div class="container py-5">
+    <div class="mb-5">
+        <h1 class="mb-1 fw-bold" style="font-size: 2rem;">Payment History</h1>
+        <p class="text-muted mb-0">View all your payment transactions</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var payment in Model)
+            {
+                <div class="col-12">
+                    <div class="payment-card">
+                        <div class="payment-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0 fw-bold">Transaction #@(payment.TransactionId ?? payment.Id.ToString())</h5>
+                                    <p class="mb-0 opacity-75 small">@payment.PaymentDate.ToString("MMM dd, yyyy 'at' h:mm tt")</p>
+                                </div>
+                                <span class="status-badge @payment.Status.ToLower()">
+                                    @if (payment.Status == "Completed")
+                                    {
+                                        <i class="fas fa-check-circle me-1"></i>
+                                    }
+                                    else if (payment.Status == "Pending")
+                                    {
+                                        <i class="fas fa-clock me-1"></i>
+                                    }
+                                    else if (payment.Status == "Failed")
+                                    {
+                                        <i class="fas fa-times-circle me-1"></i>
+                                    }
+                                    else if (payment.Status == "Refunded")
+                                    {
+                                        <i class="fas fa-undo me-1"></i>
+                                    }
+                                    @payment.Status
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-3 mb-3 mb-md-0">
+                                    <p class="small text-muted mb-1">Amount</p>
+                                    <p class="h4 mb-0 fw-bold text-success">RM @payment.Amount.ToString("N2")</p>
+                                </div>
+                                <div class="col-md-3 mb-3 mb-md-0">
+                                    <p class="small text-muted mb-1">Payment Method</p>
+                                    <p class="mb-0 fw-semibold">
+                                        <i class="fas fa-credit-card me-1"></i>@payment.PaymentMethod
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(payment.TransactionId))
+                                    {
+                                        <p class="small text-muted mb-0 mt-1">TXN: @payment.TransactionId</p>
+                                    }
+                                </div>
+                                <div class="col-md-4 mb-3 mb-md-0">
+                                    <p class="small text-muted mb-1">Booking</p>
+                                    @if (payment.Appointment?.Car != null)
+                                    {
+                                        <p class="mb-0 fw-semibold">@payment.Appointment.Car.DisplayName</p>
+                                        <p class="small text-muted mb-0">Booking #@payment.AppointmentId</p>
+                                        <p class="small mb-0 mt-1">
+                                            <span class="badge @(payment.Appointment.Status == "Confirmed" ? "bg-success" : payment.Appointment.Status == "Completed" ? "bg-info" : payment.Appointment.Status == "Pending" ? "bg-warning text-dark" : "bg-secondary")">
+                                                @if (payment.Appointment.Status == "Confirmed" || payment.Appointment.Status == "Completed")
+                                                {
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                }
+                                                @payment.Appointment.Status
+                                            </span>
+                                        </p>
+                                    }
+                                    @if (User.IsInRole("Staff") || User.IsInRole("Manager"))
+                                    {
+                                        @if (payment.Appointment?.User != null)
+                                        {
+                                            <p class="small text-muted mb-0 mt-1">Customer: @(payment.Appointment.User.FirstName + " " + payment.Appointment.User.LastName)</p>
+                                        }
+                                    }
+                                </div>
+                                <div class="col-md-2 text-center text-md-end">
+                                    <a asp-action="Details" asp-route-id="@payment.Id" 
+                                       class="btn btn-outline-primary btn-sm rounded-2 fw-semibold">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">receipt</span>
+                                        Receipt
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <span class="material-symbols-outlined mb-3" style="font-size: 4rem; color: #d1d5db;">payments</span>
+            <h3 class="fw-bold mb-2">No Payments Yet</h3>
+            <p class="text-muted mb-4">Your payment history will appear here</p>
+            <a asp-controller="Appointments" asp-action="Create" class="btn btn-primary rounded-2 fw-bold px-4">
+                Book Now
+            </a>
+        </div>
+    }
+</div>

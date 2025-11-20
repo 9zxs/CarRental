@@ -1,0 +1,127 @@
+@model IEnumerable<ApplicationUser>
+@{
+    ViewData["Title"] = "User Management";
+    var userRoles = ViewBag.UserRoles as Dictionary<string, IList<string>> ?? new Dictionary<string, IList<string>>();
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .table,
+    [data-theme="dark"] .table thead,
+    [data-theme="dark"] .table tbody {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card *,
+    [data-theme="dark"] .table th,
+    [data-theme="dark"] .table td {
+        color: #1f2937 !important;
+    }
+</style>
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0"><i class="fas fa-user-friends"></i> User Management</h2>
+        <form asp-action="DeleteAllCustomers" method="post" onsubmit="return confirm('Are you sure you want to delete ALL customer accounts? This action cannot be undone. Staff and Manager accounts will be preserved.');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash-alt me-2"></i>
+                Delete All Customers
+            </button>
+        </form>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Roles</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        var roles = userRoles.ContainsKey(user.Id) ? userRoles[user.Id] : new List<string>();
+                        <tr>
+                            <td>
+                                @if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+                                {
+                                    <img src="@user.ProfilePictureUrl" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;" />
+                                }
+                                @user.FirstName @user.LastName
+                            </td>
+                            <td>@user.Email</td>
+                            <td>@(user.PhoneNumber ?? "-")</td>
+                            <td>
+                                @foreach (var role in roles)
+                                {
+                                    <span class="badge bg-primary me-1">@role</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>@user.CreatedAt.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                <a asp-controller="Staff" asp-action="UserDetails" asp-route-id="@user.Id" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

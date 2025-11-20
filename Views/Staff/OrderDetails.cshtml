@@ -1,0 +1,342 @@
+@using CarRentalSystem.Models
+@model Appointment
+@{
+    ViewData["Title"] = "Order Details - DriveLuxe";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] h5:not(.card h5) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .card-header {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card-header.bg-white {
+        background-color: white !important;
+    }
+    
+    [data-theme="dark"] .card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted,
+    [data-theme="dark"] .card label.text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Form elements in white cards */
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-select {
+        background-color: white !important;
+        border-color: #d1d5db !important;
+        color: #1f2937 !important;
+    }
+</style>
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">receipt_long</span>
+            Order Details #@Model.Id
+        </h2>
+        <a asp-action="Orders" class="btn btn-outline-secondary">
+            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">arrow_back</span>
+            Back to Orders
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">Booking Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Customer Name</label>
+                            <div class="fw-medium">@Model.CustomerName</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Customer Email</label>
+                            <div class="fw-medium">@Model.CustomerEmail</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Customer Phone</label>
+                            <div class="fw-medium">@(Model.CustomerPhone ?? "-")</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Status</label>
+                            <div>
+                                @if (Model.Status == "Confirmed")
+                                {
+                                    <span class="badge bg-success">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 0.875rem; vertical-align: middle;">check_circle</span>
+                                        @Model.Status
+                                    </span>
+                                }
+                                else if (Model.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">@Model.Status</span>
+                                }
+                                else if (Model.Status == "Completed")
+                                {
+                                    <span class="badge bg-info">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 0.875rem; vertical-align: middle;">check_circle</span>
+                                        @Model.Status
+                                    </span>
+                                }
+                                else if (Model.Status == "Cancelled")
+                                {
+                                    <span class="badge bg-danger">@Model.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@Model.Status</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Pickup Date</label>
+                            <div class="fw-medium">@Model.StartDate.ToString("MMM dd, yyyy hh:mm tt")</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Return Date</label>
+                            <div class="fw-medium">@Model.EndDate.ToString("MMM dd, yyyy hh:mm tt")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">Car Information</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Car != null)
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Car</label>
+                                <div class="fw-medium">@(Model.Car?.DisplayName ?? "Unknown Vehicle")</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">License Plate</label>
+                                <div class="fw-medium">@(Model.Car?.LicensePlate ?? "N/A")</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Daily Rate</label>
+                                <div class="fw-medium">RM @(Model.Car?.DailyRate.ToString("N2") ?? "0.00")</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Fuel Type</label>
+                                <div class="fw-medium">@(Model.Car?.FuelType ?? "N/A")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">Price Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Base Price</span>
+                        <span class="fw-medium">RM @Model.TotalPrice.ToString("N2")</span>
+                    </div>
+                    @if (Model.DiscountAmount.HasValue && Model.DiscountAmount.Value > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2 text-success">
+                            <span>Discount</span>
+                            <span>-RM @Model.DiscountAmount.Value.ToString("N2")</span>
+                        </div>
+                    }
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">Total Price</span>
+                        <span class="fw-bold text-primary fs-5">RM @Model.TotalPrice.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">Payment Information</h5>
+                </div>
+                <div class="card-body">
+                    @{
+                        var orderPayment = ViewBag.Payment as Payment;
+                        var hasPayment = ViewBag.HasPayment as bool? ?? false;
+                    }
+                    @if (hasPayment && orderPayment != null)
+                    {
+                        <div class="mb-2">
+                            <label class="text-muted small">Payment Status</label>
+                            <div>
+                                @if (orderPayment.Status == "Completed")
+                                {
+                                    <span class="badge bg-success">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">check_circle</span>
+                                        @orderPayment.Status
+                                    </span>
+                                }
+                                else if (orderPayment.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">schedule</span>
+                                        @orderPayment.Status
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">@orderPayment.Status</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="text-muted small">Payment Method</label>
+                            <div class="fw-medium">@orderPayment.PaymentMethod</div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="text-muted small">Transaction ID</label>
+                            <div class="fw-medium">@(orderPayment.TransactionId ?? "N/A")</div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="text-muted small">Payment Date</label>
+                            <div class="fw-medium">@orderPayment.PaymentDate.ToString("MMM dd, yyyy hh:mm tt")</div>
+                        </div>
+                        <a asp-controller="Payments" asp-action="Details" asp-route-id="@orderPayment.Id" class="btn btn-sm btn-outline-primary w-100 mt-2">
+                            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">receipt</span>
+                            View Payment
+                        </a>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-2">
+                            <span class="material-symbols-outlined mb-2" style="font-size: 2rem; opacity: 0.5;">payments</span>
+                            <div>No payment yet</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0 fw-bold">Actions</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Status == "Pending")
+                    {
+                        <form asp-action="UpdateOrderStatus" method="post" class="mb-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <input type="hidden" name="status" value="Confirmed" />
+                            <button type="submit" class="btn btn-success w-100">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">check</span>
+                                Confirm Order
+                            </button>
+                        </form>
+                    }
+                    @if (Model.Status == "Confirmed" && Model.EndDate < DateTime.UtcNow)
+                    {
+                        <form asp-action="UpdateOrderStatus" method="post" class="mb-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <input type="hidden" name="status" value="Completed" />
+                            <button type="submit" class="btn btn-info w-100">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">check_circle</span>
+                                Mark as Completed
+                            </button>
+                        </form>
+                    }
+                    @if (Model.Status != "Cancelled" && Model.Status != "Completed")
+                    {
+                        <form asp-action="UpdateOrderStatus" method="post" class="mb-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <input type="hidden" name="status" value="Cancelled" />
+                            <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to cancel this order? This will process a refund if payment was made.');">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">close</span>
+                                Cancel Order & Refund
+                            </button>
+                        </form>
+                    }
+                    @if (Model.Status == "Cancelled")
+                    {
+                        <div class="alert alert-warning mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>This order has been cancelled.</strong>
+                            @{
+                                var cancelledPayment = ViewBag.Payment as Payment;
+                                if (cancelledPayment != null && cancelledPayment.Status == "Refunded")
+                                {
+                                    <div class="mt-2">Refund of RM @cancelledPayment.Amount.ToString("N2") has been processed.</div>
+                                }
+                            }
+                        </div>
+                    }
+                    <hr class="my-3">
+                    <div class="d-grid gap-2">
+                        @if (Model.User != null)
+                        {
+                            <a asp-action="UserDetails" asp-route-userId="@Model.UserId" class="btn btn-outline-primary btn-sm">
+                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">person</span>
+                                View Customer Profile
+                            </a>
+                        }
+                        @{
+                            var paymentDetails = ViewBag.Payment as Payment;
+                            if (ViewBag.HasPayment == true && paymentDetails != null)
+                            {
+                                var paymentId = paymentDetails?.Id ?? 0;
+                                if (paymentId > 0)
+                                {
+                                    <a asp-controller="Payments" asp-action="Details" asp-route-id="@paymentId" class="btn btn-outline-info btn-sm">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">receipt</span>
+                                        View Payment Details
+                                    </a>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

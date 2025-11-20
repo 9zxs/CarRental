@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] p:not(.card p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card {
+        background: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    /* Keep colored headers white */
+    [data-theme="dark"] .bg-danger,
+    [data-theme="dark"] .bg-danger * {
+        color: white !important;
+    }
+</style>
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 text-center">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-ban text-danger" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="mb-3">Access Denied</h2>
+                    <p class="lead text-muted">Sorry, you do not have permission to access this page.</p>
+                    <div class="mt-4">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home"></i> Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

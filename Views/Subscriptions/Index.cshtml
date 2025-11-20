@@ -1,0 +1,413 @@
+@model IEnumerable<Subscription>
+@{
+    ViewData["Title"] = "CarRental+ Subscription Plans";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --secondary: #667eea;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --dark: #1f2937;
+        --light: #f9fafb;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--light);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    /* Dark mode support for subscription page */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.subscription-card h1):not(.hero-section h1):not(.subscription-header h1),
+    [data-theme="dark"] h2:not(.subscription-card h2):not(.subscription-header h2),
+    [data-theme="dark"] h3:not(.subscription-card h3):not(.subscription-header h3),
+    [data-theme="dark"] p:not(.subscription-card p):not(.subscription-header p):not(.subscription-body p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White subscription cards in dark mode need dark text */
+    [data-theme="dark"] .subscription-card {
+        background: white !important;
+    }
+    
+    [data-theme="dark"] .subscription-body {
+        background: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .subscription-body *:not(.material-symbols-outlined):not(.btn),
+    [data-theme="dark"] .subscription-card *:not(.subscription-header):not(.subscription-header *):not(.popular-badge):not(.material-symbols-outlined):not(.btn) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .subscription-body .price-display,
+    [data-theme="dark"] .subscription-body .price-display[style],
+    [data-theme="dark"] .subscription-body .price-display[style*="color"] {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .subscription-body .price-period,
+    [data-theme="dark"] .subscription-body .price-period[style],
+    [data-theme="dark"] .subscription-body .price-period[style*="color"] {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .subscription-body .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .subscription-body .feature-list li {
+        color: #1f2937 !important;
+        border-bottom-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .subscription-body .feature-list li span:not(.material-symbols-outlined) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .subscription-body strong {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .subscribe-btn.outline {
+        background: white !important;
+        color: var(--primary, #135bec) !important;
+        border-color: var(--primary, #135bec) !important;
+    }
+    
+    [data-theme="dark"] .subscribe-btn.outline:hover {
+        background: var(--primary, #135bec) !important;
+        color: white !important;
+    }
+    
+    [data-theme="dark"] .subscription-header {
+        color: white !important; /* Keep white text on colored headers */
+    }
+    
+    [data-theme="dark"] .subscription-header h3,
+    [data-theme="dark"] .subscription-header p {
+        color: white !important;
+    }
+    
+    [data-theme="dark"] .popular-badge {
+        color: white !important;
+        background: var(--warning) !important;
+    }
+    
+    [data-theme="dark"] .hero-section {
+        color: white !important; /* Keep white text on hero section */
+    }
+    
+    [data-theme="dark"] .hero-section h1,
+    [data-theme="dark"] .hero-section p {
+        color: white !important;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .subscription-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        position: relative;
+    }
+
+    .subscription-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .subscription-card.featured {
+        border: 3px solid var(--primary);
+        transform: scale(1.05);
+    }
+
+    .subscription-card.featured:hover {
+        transform: scale(1.05) translateY(-8px);
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--warning);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        z-index: 10;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .subscription-header {
+        background: linear-gradient(135deg, #667eea 0%, var(--primary) 100%);
+        padding: 2rem;
+        color: white;
+        text-align: center;
+    }
+
+    .subscription-header.basic {
+        background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+    }
+
+    .subscription-header.premium {
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    }
+
+    .subscription-body {
+        padding: 2rem;
+        background: white;
+    }
+
+    .price-display {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--dark);
+        line-height: 1;
+    }
+    
+    .price-period {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+    }
+
+    .feature-list li {
+        padding: 0.75rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+
+    .feature-icon {
+        color: var(--success);
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    
+    .feature-list li span:last-child {
+        flex: 1;
+    }
+
+    .subscribe-btn {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .subscribe-btn.primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .subscribe-btn.primary:hover {
+        background: #0f4ccc;
+        transform: scale(1.05);
+    }
+
+    .subscribe-btn.outline {
+        background: white;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+    }
+
+    .subscribe-btn.outline:hover {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .alert {
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    @@media (max-width: 768px) {
+        .subscription-card.featured {
+            transform: scale(1);
+        }
+        
+        .subscription-card.featured:hover {
+            transform: translateY(-8px);
+        }
+        
+        .price-display {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+}
+
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">Subscription Plans</h1>
+        <p class="lead mb-0">Choose the perfect plan and save on every rental</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @{
+        var subscriptions = Model?.ToList() ?? new List<Subscription>();
+    }
+    
+    @if (!subscriptions.Any())
+    {
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>No subscription plans available at the moment. Please check back later.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @for (int i = 0; i < subscriptions.Count; i++)
+            {
+                var subscription = subscriptions[i];
+                if (subscription == null) continue;
+                
+                var isFeatured = subscription.Name?.Contains("Elite", StringComparison.OrdinalIgnoreCase) == true || 
+                                subscription.Name?.Contains("Premium", StringComparison.OrdinalIgnoreCase) == true;
+                var headerClass = subscription.Name?.Contains("Basic", StringComparison.OrdinalIgnoreCase) == true ? "basic" : 
+                                 subscription.Name?.Contains("Premium", StringComparison.OrdinalIgnoreCase) == true ? "premium" : "";
+                
+                <div class="col-md-4">
+                    <div class="subscription-card @(isFeatured ? "featured" : "")">
+                        @if (isFeatured)
+                        {
+                            <div class="popular-badge">POPULAR</div>
+                        }
+                        
+                        <div class="subscription-header @headerClass">
+                            <h3 class="mb-0 fw-bold">@(subscription.Name ?? "Unknown Plan")</h3>
+                            <p class="mb-0 mt-2 opacity-90">@(subscription.Description ?? "Premium subscription plan")</p>
+                        </div>
+                        
+                        <div class="subscription-body">
+                            <div class="text-center mb-4">
+                                <div class="price-display">$@subscription.MonthlyPrice.ToString("F2")</div>
+                                <div class="price-period">per month</div>
+                            </div>
+
+                            <ul class="feature-list">
+                                <li>
+                                    <span class="material-symbols-outlined feature-icon">check_circle</span>
+                                    <span><strong>@subscription.DiscountPercentage.ToString("F2")%</strong> discount on all rentals</span>
+                                </li>
+                                <li>
+                                    <span class="material-symbols-outlined feature-icon">check_circle</span>
+                                    <span>Up to <strong>@(subscription.MaxRentalsPerMonth >= 999 ? "Unlimited" : subscription.MaxRentalsPerMonth.ToString())</strong> rentals per month</span>
+                                </li>
+                                <li>
+                                    <span class="material-symbols-outlined feature-icon">check_circle</span>
+                                    <span>Max <strong>@subscription.MaxDaysPerRental</strong> days per rental</span>
+                                </li>
+                                @if (subscription.IncludesEVPriority)
+                                {
+                                    <li>
+                                        <span class="material-symbols-outlined feature-icon" style="color: #f59e0b;">bolt</span>
+                                        <span><strong>EV Priority Access</strong></span>
+                                    </li>
+                                }
+                                <li>
+                                    <span class="material-symbols-outlined feature-icon" style="color: var(--success);">check_circle</span>
+                                    <span>Cancel anytime</span>
+                                </li>
+                            </ul>
+
+                            @if (User.Identity!.IsAuthenticated)
+                            {
+                                <a href="#" onclick="alert('Please select a vehicle first, then you can choose this subscription plan during booking.'); return false;" 
+                                   class="subscribe-btn @(isFeatured ? "primary" : "outline") text-decoration-none d-block text-center">
+                                    View Details
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" 
+                                   class="subscribe-btn @(isFeatured ? "primary" : "outline") text-decoration-none d-block text-center">
+                                    Login to Subscribe
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="material-symbols-outlined text-primary" style="font-size: 2.5rem;">info</span>
+                        <h5 class="mb-0 fw-bold">How It Works</h5>
+                    </div>
+                    <p class="mb-0 text-muted">
+                        Subscribe to any plan and enjoy automatic discounts on all your rentals. 
+                        Subscriptions are billed monthly and can be cancelled anytime. 
+                        Premium and Elite plans include priority access to our electric vehicle fleet.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        /* Ensure "How It Works" card has correct colors in dark mode */
+        [data-theme="dark"] .card:not(.subscription-card):not(.subscription-body) {
+            background: white !important;
+            color: #1f2937 !important;
+        }
+        
+        [data-theme="dark"] .card:not(.subscription-card):not(.subscription-body) *:not(.material-symbols-outlined):not(.btn) {
+            color: #1f2937 !important;
+        }
+        
+        [data-theme="dark"] .card:not(.subscription-card):not(.subscription-body) .text-muted {
+            color: #6b7280 !important;
+        }
+    </style>
+</div>

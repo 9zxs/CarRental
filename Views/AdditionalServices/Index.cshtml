@@ -1,0 +1,351 @@
+@{
+    ViewData["Title"] = "Car Rental Add-ons";
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --secondary: #667eea;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --dark: #1f2937;
+        --light: #f9fafb;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: var(--light);
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .service-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        height: 100%;
+        background: white;
+    }
+
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .service-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        color: white;
+    }
+
+    .service-icon.gps {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    }
+
+    .service-icon.insurance {
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    }
+
+    .service-icon.baby-seat {
+        background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+    }
+
+    .service-icon.wifi {
+        background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+    }
+
+    .service-icon.driver {
+        background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    }
+
+    .service-icon.towbar {
+        background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    }
+
+    .service-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .service-description {
+        color: #6b7280;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .service-price {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--primary);
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .service-price .period {
+        font-size: 1rem;
+        color: #6b7280;
+        font-weight: 400;
+    }
+
+    .add-service-btn {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid var(--primary);
+        background: white;
+        color: var(--primary);
+        border-radius: 0.5rem;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .add-service-btn:hover {
+        background: var(--primary);
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--dark);
+        margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+        font-size: 1.125rem;
+        color: #6b7280;
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h1:not(.service-card h1):not(.hero-section h1),
+    [data-theme="dark"] h2:not(.service-card h2),
+    [data-theme="dark"] h3:not(.service-card h3),
+    [data-theme="dark"] p:not(.service-card p):not(.hero-section p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White service cards in dark mode need dark text */
+    [data-theme="dark"] .service-card {
+        background: white !important;
+        border-color: #e5e7eb !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .service-card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .service-title,
+    [data-theme="dark"] .service-card .section-title {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .service-description,
+    [data-theme="dark"] .service-card .section-subtitle {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .section-title:not(.service-card .section-title) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .section-subtitle:not(.service-card .section-subtitle) {
+        color: var(--text-secondary, #d1d5db) !important;
+    }
+    
+    /* Keep white text on colored backgrounds */
+    [data-theme="dark"] .hero-section,
+    [data-theme="dark"] .hero-section * {
+        color: white !important;
+    }
+</style>
+}
+
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">Additional Services</h1>
+        <p class="lead mb-0">Enhance your rental experience with our premium add-ons</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="section-header">
+        <h2 class="section-title">Available Add-ons</h2>
+        <p class="section-subtitle">Customize your rental with these optional services</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="service-card">
+                <div class="card-body p-4">
+                    <div class="service-icon gps">
+                        <span class="material-symbols-outlined">explore</span>
+                    </div>
+                    <h3 class="service-title">GPS Navigation</h3>
+                    <p class="service-description">
+                        Never get lost with our premium GPS navigation system. Real-time traffic updates and turn-by-turn directions.
+                    </p>
+                    <div class="service-price">
+                        $5<span class="period">/day</span>
+                    </div>
+                    <button class="add-service-btn">
+                        Add to Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="service-card">
+                <div class="card-body p-4">
+                    <div class="service-icon insurance">
+                        <span class="material-symbols-outlined">security</span>
+                    </div>
+                    <h3 class="service-title">Premium Insurance</h3>
+                    <p class="service-description">
+                        Comprehensive coverage for peace of mind. Zero deductible and 24/7 roadside assistance included.
+                    </p>
+                    <div class="service-price">
+                        $15<span class="period">/day</span>
+                    </div>
+                    <button class="add-service-btn">
+                        Add to Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="service-card">
+                <div class="card-body p-4">
+                    <div class="service-icon baby-seat">
+                        <span class="material-symbols-outlined">child_care</span>
+                    </div>
+                    <h3 class="service-title">Child Safety Seat</h3>
+                    <p class="service-description">
+                        Keep your little ones safe with our certified child safety seats. Available in multiple sizes.
+                    </p>
+                    <div class="service-price">
+                        $8<span class="period">/day</span>
+                    </div>
+                    <button class="add-service-btn">
+                        Add to Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="service-card">
+                <div class="card-body p-4">
+                    <div class="service-icon wifi">
+                        <span class="material-symbols-outlined">wifi</span>
+                    </div>
+                    <h3 class="service-title">WiFi Hotspot</h3>
+                    <p class="service-description">
+                        Stay connected on the go with unlimited high-speed internet. Perfect for remote work or streaming.
+                    </p>
+                    <div class="service-price">
+                        $7<span class="period">/day</span>
+                    </div>
+                    <button class="add-service-btn">
+                        Add to Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="service-card">
+                <div class="card-body p-4">
+                    <div class="service-icon driver">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <h3 class="service-title">Professional Driver</h3>
+                    <p class="service-description">
+                        Sit back and relax with our licensed professional driver service. Available for hourly or daily rental.
+                    </p>
+                    <div class="service-price">
+                        $50<span class="period">/day</span>
+                    </div>
+                    <button class="add-service-btn">
+                        Add to Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="service-card">
+                <div class="card-body p-4">
+                    <div class="service-icon towbar">
+                        <span class="material-symbols-outlined">luggage</span>
+                    </div>
+                    <h3 class="service-title">Towbar & Bike Rack</h3>
+                    <p class="service-description">
+                        Perfect for adventure seekers. Towbar and bike rack available for your outdoor activities.
+                    </p>
+                    <div class="service-price">
+                        $10<span class="period">/day</span>
+                    </div>
+                    <button class="add-service-btn">
+                        Add to Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="material-symbols-outlined text-primary" style="font-size: 2.5rem;">info</span>
+                        <h5 class="mb-0 fw-bold">About Additional Services</h5>
+                    </div>
+                    <p class="mb-0 text-muted">
+                        All additional services can be added during the booking process or later by contacting our customer support. 
+                        Services are billed per day and can be cancelled up to 24 hours before your rental starts. 
+                        Some services may require advance booking - please check availability when making your reservation.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

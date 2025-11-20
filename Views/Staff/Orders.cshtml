@@ -1,0 +1,502 @@
+@using CarRentalSystem.Models
+@model IEnumerable<Appointment>
+@{
+    ViewData["Title"] = "Manage Orders - DriveLuxe";
+    var status = ViewBag.Status as string ?? "All";
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+    var paymentsDict = ViewBag.Payments as Dictionary<int, Payment> ?? new Dictionary<int, Payment>();
+}
+
+@section Styles {
+<style>
+    :root {
+        --primary: #135bec;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f9fafb;
+    }
+    
+    /* Ensure text is visible in dark mode */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .table {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    [data-theme="dark"] .table th,
+    [data-theme="dark"] .table td {
+        color: var(--text-primary, #f9fafb) !important;
+        border-color: var(--border-color, #374151) !important;
+    }
+    
+    /* CRITICAL: Keep white background for table card in dark mode */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .table-responsive,
+    [data-theme="dark"] .table,
+    [data-theme="dark"] .table-light,
+    [data-theme="dark"] .table thead,
+    [data-theme="dark"] .table tbody {
+        background-color: white !important;
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .table th,
+    [data-theme="dark"] .table td,
+    [data-theme="dark"] .table-light th,
+    [data-theme="dark"] .table-light td {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .table .text-muted,
+    [data-theme="dark"] .table td.text-muted,
+    [data-theme="dark"] .table td.text-center.text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .card label,
+    [data-theme="dark"] .card .form-label,
+    [data-theme="dark"] .card .form-check-label {
+        color: #1f2937 !important;
+    }
+    
+    /* Keep dark text for page headers outside cards */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Form elements in white cards */
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-select,
+    [data-theme="dark"] .card .form-check-input {
+        background-color: white !important;
+        border-color: #d1d5db !important;
+        color: #1f2937 !important;
+    }
+    
+    /* Buttons in white cards */
+    [data-theme="dark"] .card .btn:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info) {
+        color: #1f2937 !important;
+    }
+</style>
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">
+            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">list_alt</span>
+            Manage Orders
+        </h2>
+        <div class="d-flex gap-2">
+            <a asp-action="Calendar" class="btn btn-outline-primary rounded-2">
+                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">calendar_month</span>
+                Calendar View
+            </a>
+            <a asp-action="Dashboard" class="btn btn-outline-secondary rounded-2">
+                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">dashboard</span>
+                Dashboard
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">check_circle</span>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span class="material-symbols-outlined me-2" style="font-size: 1.25rem; vertical-align: middle;">error</span>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-4">
+            <!-- Batch Actions -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <input type="checkbox" id="selectAll" class="form-check-input me-2" />
+                    <label for="selectAll" class="form-check-label fw-medium">Select All</label>
+                    <span id="selectedCount" class="ms-3 text-muted small"></span>
+                </div>
+                <div class="d-flex gap-2">
+                    <form asp-action="ExportOrdersToCsv" method="post" class="d-inline">
+                        <input type="hidden" name="status" value="@status" />
+                        <input type="hidden" name="searchTerm" value="@searchTerm" />
+                        <button type="submit" class="btn btn-outline-success btn-sm rounded-2">
+                            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">download</span>
+                            Export CSV
+                        </button>
+                    </form>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-2 dropdown-toggle" 
+                                data-bs-toggle="dropdown" id="batchActionBtn" disabled>
+                            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">tune</span>
+                            Batch Actions
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <form asp-action="BatchUpdateOrderStatus" method="post" id="batchForm" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="orderIds" id="selectedOrderIds" />
+                                    <input type="hidden" name="status" value="Confirmed" />
+                                    <button type="submit" class="dropdown-item" onclick="return batchAction('Confirmed');">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">check</span>
+                                        Confirm Selected
+                                    </button>
+                                </form>
+                            </li>
+                            <li>
+                                <form asp-action="BatchUpdateOrderStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="orderIds" id="selectedOrderIds2" />
+                                    <input type="hidden" name="status" value="Completed" />
+                                    <button type="submit" class="dropdown-item" onclick="return batchAction('Completed');">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">check_circle</span>
+                                        Mark Completed
+                                    </button>
+                                </form>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form asp-action="BatchUpdateOrderStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="orderIds" id="selectedOrderIds3" />
+                                    <input type="hidden" name="status" value="Cancelled" />
+                                    <button type="submit" class="dropdown-item text-danger" onclick="return batchAction('Cancelled', true);">
+                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">close</span>
+                                        Cancel Selected
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <form method="get" id="searchForm" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-medium">Status</label>
+                    <select name="status" id="statusFilter" class="form-select">
+                        <option value="All" selected="@(status == "All")">All Status</option>
+                        <option value="Pending" selected="@(status == "Pending")">Pending</option>
+                        <option value="Confirmed" selected="@(status == "Confirmed")">Confirmed</option>
+                        <option value="Completed" selected="@(status == "Completed")">Completed</option>
+                        <option value="Cancelled" selected="@(status == "Cancelled")">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">search</span>
+                        Search Orders
+                    </label>
+                    <input type="text" name="searchTerm" id="searchInput" class="form-control" placeholder="Search by customer name, email, car..." value="@searchTerm" autocomplete="off" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">search</span>
+                        Search
+                    </button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="50">
+                                <input type="checkbox" id="selectAllHeader" class="form-check-input" />
+                            </th>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Car</th>
+                            <th>Pickup Date</th>
+                            <th>Return Date</th>
+                            <th>Total Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr class="fade-in">
+                                <td>
+                                    <input type="checkbox" class="form-check-input order-checkbox" value="@order.Id" />
+                                </td>
+                                <td>#@order.Id</td>
+                                <td>
+                                    <div>@order.CustomerName</div>
+                                    <small class="text-muted">@order.CustomerEmail</small>
+                                </td>
+                                <td>@order.Car?.DisplayName</td>
+                                <td>@order.StartDate.ToString("MMM dd, yyyy")</td>
+                                <td>@order.EndDate.ToString("MMM dd, yyyy")</td>
+                                <td class="fw-bold">RM @order.TotalPrice.ToString("N2")</td>
+                                @{
+                                    var orderPayment = paymentsDict.ContainsKey(order.Id) ? paymentsDict[order.Id] : null;
+                                    var isPaymentCompleted = orderPayment != null && orderPayment.Status == "Completed";
+                                }
+                                <td>
+                                    @if (order.Status == "Confirmed")
+                                    {
+                                        <span class="badge bg-success">
+                                            @if (isPaymentCompleted)
+                                            {
+                                                <i class="fas fa-check-circle me-1"></i>
+                                            }
+                                            @order.Status
+                                        </span>
+                                    }
+                                    else if (order.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            @if (isPaymentCompleted)
+                                            {
+                                                <i class="fas fa-check-circle me-1"></i>
+                                            }
+                                            @order.Status
+                                        </span>
+                                    }
+                                    else if (order.Status == "Completed")
+                                    {
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-check-circle me-1"></i>@order.Status
+                                        </span>
+                                    }
+                                    else if (order.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>@order.Status
+                                        </span>
+                                        @if (orderPayment != null && orderPayment.Status == "Refunded")
+                                        {
+                                            <br><small class="text-info mt-1 d-block"><i class="fas fa-undo me-1"></i>Refunded</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@order.Status</span>
+                                    }
+                                    @if (isPaymentCompleted && order.Status != "Cancelled")
+                                    {
+                                        <br><small class="text-success mt-1 d-block"><i class="fas fa-check me-1"></i>Payment Completed</small>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="OrderDetails" asp-route-id="@order.Id" class="btn btn-sm btn-outline-primary">
+                                            <span class="material-symbols-outlined" style="font-size: 1rem;">visibility</span>
+                                        </a>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                                <span class="material-symbols-outlined" style="font-size: 1rem;">more_vert</span>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a asp-action="OrderDetails" asp-route-id="@order.Id" class="dropdown-item">
+                                                        <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">visibility</span>
+                                                        View Details
+                                                    </a>
+                                                </li>
+                                                @if (order.Status == "Pending")
+                                                {
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <form asp-action="UpdateOrderStatus" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@order.Id" />
+                                                            <input type="hidden" name="status" value="Confirmed" />
+                                                            <button type="submit" class="dropdown-item text-success">
+                                                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">check</span>
+                                                                Confirm
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                }
+                                                @if (order.Status == "Confirmed" && order.EndDate < DateTime.UtcNow)
+                                                {
+                                                    <li>
+                                                        <form asp-action="UpdateOrderStatus" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@order.Id" />
+                                                            <input type="hidden" name="status" value="Completed" />
+                                                            <button type="submit" class="dropdown-item text-info">
+                                                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">check_circle</span>
+                                                                Mark Completed
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                }
+                                                @if (order.Status != "Cancelled" && order.Status != "Completed")
+                                                {
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <form asp-action="UpdateOrderStatus" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@order.Id" />
+                                                            <input type="hidden" name="status" value="Cancelled" />
+                                                            <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to cancel this order?');">
+                                                                <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">close</span>
+                                                                Cancel
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                }
+                                                @if (order.User != null)
+                                                {
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <a asp-action="UserDetails" asp-route-userId="@order.UserId" class="dropdown-item">
+                                                            <span class="material-symbols-outlined me-1" style="font-size: 1rem; vertical-align: middle;">person</span>
+                                                            View Customer
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <span class="material-symbols-outlined mb-2" style="font-size: 3rem; opacity: 0.5;">inbox</span>
+                                    <div>No orders found</div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const selectAllHeader = document.getElementById('selectAllHeader');
+        const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+        const batchActionBtn = document.getElementById('batchActionBtn');
+        const selectedCount = document.getElementById('selectedCount');
+
+        function updateBatchActionButton() {
+            const checked = document.querySelectorAll('.order-checkbox:checked');
+            const count = checked.length;
+            batchActionBtn.disabled = count === 0;
+            selectedCount.textContent = count > 0 ? `${count} selected` : '';
+        }
+
+        function toggleAll(checked) {
+            orderCheckboxes.forEach(cb => {
+                cb.checked = checked;
+            });
+            updateBatchActionButton();
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                toggleAll(this.checked);
+                if (selectAllHeader) selectAllHeader.checked = this.checked;
+            });
+        }
+
+        if (selectAllHeader) {
+            selectAllHeader.addEventListener('change', function() {
+                toggleAll(this.checked);
+                if (selectAllCheckbox) selectAllCheckbox.checked = this.checked;
+            });
+        }
+
+        orderCheckboxes.forEach(cb => {
+            cb.addEventListener('change', updateBatchActionButton);
+        });
+
+        updateBatchActionButton();
+    });
+
+    function batchAction(status, confirm = false) {
+        const checked = document.querySelectorAll('.order-checkbox:checked');
+        const ids = Array.from(checked).map(cb => parseInt(cb.value));
+        
+        if (ids.length === 0) {
+            alert('Please select at least one order.');
+            return false;
+        }
+
+        if (confirm) {
+            if (!confirm(`Are you sure you want to cancel ${ids.length} order(s)?`)) {
+                return false;
+            }
+        }
+
+        // Update all batch form inputs
+        document.getElementById('selectedOrderIds').value = ids.join(',');
+        if (document.getElementById('selectedOrderIds2')) {
+            document.getElementById('selectedOrderIds2').value = ids.join(',');
+        }
+        if (document.getElementById('selectedOrderIds3')) {
+            document.getElementById('selectedOrderIds3').value = ids.join(',');
+        }
+
+        // Update status in the form that will be submitted
+        const form = event.target.closest('form');
+        if (form) {
+            form.querySelector('input[name="status"]').value = status;
+            form.querySelector('input[name="orderIds"]').value = ids.join(',');
+        }
+
+        return true;
+    }
+
+    // Auto-submit on change - no need to click search button
+    (function() {
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const searchForm = document.getElementById('searchForm');
+
+        // Search on Enter key or blur (lose focus)
+        if (searchInput && searchForm) {
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchForm.submit();
+                }
+            });
+            searchInput.addEventListener('blur', function() {
+                searchForm.submit();
+            });
+        }
+
+        // Auto-submit when filter changes - immediate, no delay
+        if (statusFilter) {
+            statusFilter.addEventListener('change', function() {
+                searchForm.submit();
+            });
+        }
+    })();
+</script>
+}

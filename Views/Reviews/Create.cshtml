@@ -1,0 +1,214 @@
+@model Review
+@{
+    ViewData["Title"] = "Write a Review";
+    var car = ViewBag.Car as Car;
+}
+
+@section Styles {
+<style>
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2),
+    [data-theme="dark"] h3:not(.card h3),
+    [data-theme="dark"] h4:not(.card h4):not(.card-header h4),
+    [data-theme="dark"] p:not(.card p):not(.card-header p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .card-header:not(.bg-primary) {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card *:not(.card-header):not(.card-header *) {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted,
+    [data-theme="dark"] .card small.text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-label {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #d1d5db !important;
+    }
+    
+    /* Keep white text on colored headers */
+    [data-theme="dark"] .card-header.bg-primary,
+    [data-theme="dark"] .card-header.bg-primary * {
+        color: white !important;
+    }
+</style>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="container mt-4">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-star"></i> Write a Review</h4>
+                    @if (car != null)
+                    {
+                        <p class="mb-0">Review for: @car.DisplayName</p>
+                    }
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="CarId" value="@car?.Id" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Rating" class="form-label fw-bold">Rating *</label>
+                            <div class="rating-input">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <input type="radio" asp-for="Rating" value="@i" id="rating@i" class="d-none" />
+                                    <label for="rating@i" class="rating-star">
+                                        <i class="far fa-star fa-2x"></i>
+                                    </label>
+                                }
+                            </div>
+                            <span asp-validation-for="Rating" class="text-danger d-block mt-2"></span>
+                            <small class="text-muted">Click on a star to rate</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Comment" class="form-label fw-bold">Your Review</label>
+                            <textarea asp-for="Comment" class="form-control" rows="5" placeholder="Share your experience..." maxlength="1000"></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                            <small class="text-muted">Maximum 1000 characters</small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Submit Review
+                            </button>
+                            @if (car != null)
+                            {
+                                <a asp-action="Index" asp-route-carId="@car.Id" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            }
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <style>
+        .rating-input {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 2rem;
+        }
+        .rating-star {
+            cursor: pointer;
+            color: #ddd;
+            transition: all 0.2s;
+        }
+        .rating-star:hover,
+        .rating-star:hover ~ .rating-star {
+            color: #ffc107;
+        }
+        input[type="radio"]:checked + label,
+        input[type="radio"]:checked ~ label {
+            color: #ffc107;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ratingInputs = document.querySelectorAll('.rating-input input[type="radio"]');
+            const ratingLabels = document.querySelectorAll('.rating-input label');
+            
+            // Update display when radio changes
+            ratingInputs.forEach((radio, index) => {
+                radio.addEventListener('change', function() {
+                    const rating = parseInt(this.value);
+                    ratingLabels.forEach((label, i) => {
+                        if (i < rating) {
+                            label.style.color = '#ffc107';
+                            label.querySelector('i').classList.remove('far');
+                            label.querySelector('i').classList.add('fas');
+                        } else {
+                            label.style.color = '#ddd';
+                            label.querySelector('i').classList.remove('fas');
+                            label.querySelector('i').classList.add('far');
+                        }
+                    });
+                });
+            });
+            
+            // Hover effect
+            ratingLabels.forEach((label, index) => {
+                label.addEventListener('mouseenter', function() {
+                    ratingLabels.forEach((l, i) => {
+                        if (i <= index) {
+                            l.style.color = '#ffc107';
+                            l.querySelector('i').classList.remove('far');
+                            l.querySelector('i').classList.add('fas');
+                        }
+                    });
+                });
+                
+                label.addEventListener('mouseleave', function() {
+                    const checkedRadio = document.querySelector('.rating-input input[type="radio"]:checked');
+                    if (checkedRadio) {
+                        const rating = parseInt(checkedRadio.value);
+                        ratingLabels.forEach((l, i) => {
+                            if (i < rating) {
+                                l.style.color = '#ffc107';
+                                l.querySelector('i').classList.remove('far');
+                                l.querySelector('i').classList.add('fas');
+                            } else {
+                                l.style.color = '#ddd';
+                                l.querySelector('i').classList.remove('fas');
+                                l.querySelector('i').classList.add('far');
+                            }
+                        });
+                    } else {
+                        ratingLabels.forEach((l) => {
+                            l.style.color = '#ddd';
+                            l.querySelector('i').classList.remove('fas');
+                            l.querySelector('i').classList.add('far');
+                        });
+                    }
+                });
+            });
+            
+            // Initialize display if rating is already selected
+            const checkedRadio = document.querySelector('.rating-input input[type="radio"]:checked');
+            if (checkedRadio) {
+                checkedRadio.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+}
+

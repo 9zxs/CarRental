@@ -1,0 +1,324 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile - DriveLuxe";
+    var malaysianStates = ViewBag.MalaysianStates as List<string> ?? new List<string>();
+    var totalBookings = ViewBag.TotalBookings as int? ?? 0;
+    var completedBookings = ViewBag.CompletedBookings as int? ?? 0;
+    var totalSpent = ViewBag.TotalSpent as decimal? ?? 0;
+}
+
+@section Styles {
+<style>
+    .profile-card {
+        transition: transform 0.3s ease;
+    }
+    
+    .profile-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Dark mode support */
+    [data-theme="dark"] body {
+        background: var(--bg-primary, #030712) !important;
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* Page headers outside cards remain light */
+    [data-theme="dark"] h2:not(.card h2):not(.stat-card h2),
+    [data-theme="dark"] h3:not(.card h3):not(.stat-card h3),
+    [data-theme="dark"] h4:not(.card h4),
+    [data-theme="dark"] h5:not(.card h5),
+    [data-theme="dark"] p:not(.card p):not(.stat-card p):not([class*="bg-gradient"] p) {
+        color: var(--text-primary, #f9fafb) !important;
+    }
+    
+    /* CRITICAL: White cards in dark mode need dark text */
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .card-body,
+    [data-theme="dark"] .stat-card {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    [data-theme="dark"] .card *:not([class*="bg-gradient"]),
+    [data-theme="dark"] .stat-card * {
+        color: #1f2937 !important;
+    }
+    
+    [data-theme="dark"] .card .text-muted,
+    [data-theme="dark"] .stat-card .text-muted {
+        color: #6b7280 !important;
+    }
+    
+    [data-theme="dark"] .card .form-control,
+    [data-theme="dark"] .card .form-select,
+    [data-theme="dark"] .card .form-label {
+        background-color: white !important;
+        color: #1f2937 !important;
+        border-color: #d1d5db !important;
+    }
+    
+    [data-theme="dark"] .card .text-danger {
+        color: #dc2626 !important;
+    }
+    
+    /* Keep white text on colored gradient cards */
+    [data-theme="dark"] [class*="bg-gradient"],
+    [data-theme="dark"] [class*="bg-gradient"] * {
+        color: white !important;
+    }
+</style>
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-4"><i class="fas fa-user-circle"></i> My Profile</h2>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <form asp-action="Profile" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-4 text-center">
+                                <div class="profile-picture-container mb-3">
+                                    @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                                    {
+                                        <img src="@Model.ProfilePictureUrl" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 200px; height: 200px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 200px; height: 200px;">
+                                            <i class="fas fa-user fa-5x text-muted"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="mb-3">
+                                    <label asp-for="ProfilePicture" class="form-label">Upload New Profile Picture</label>
+                                    <input asp-for="ProfilePicture" type="file" class="form-control" accept="image/*" />
+                                    <small class="text-muted">Supported formats: JPG, PNG, GIF. Max size: 5MB</small>
+                                    <span asp-validation-for="ProfilePicture" class="text-danger d-block"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="FirstName" class="form-label"></label>
+                                        <input asp-for="FirstName" class="form-control" />
+                                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="LastName" class="form-label"></label>
+                                        <input asp-for="LastName" class="form-control" />
+                                        <span asp-validation-for="LastName" class="text-danger"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label"></label>
+                                    <input asp-for="Email" class="form-control" type="email" readonly />
+                                    <small class="text-muted">Email address cannot be changed</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="PhoneNumber" class="form-label"></label>
+                                    <input asp-for="PhoneNumber" class="form-control" type="tel" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="DateOfBirth" class="form-label"></label>
+                                    <input asp-for="DateOfBirth" class="form-control" type="date" />
+                                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h5 class="mb-3">Address Information</h5>
+                        <div class="mb-3">
+                            <label asp-for="Address" class="form-label"></label>
+                            <input asp-for="Address" class="form-control" />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="City" class="form-label"></label>
+                                <input asp-for="City" class="form-control" />
+                                <span asp-validation-for="City" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="State" class="form-label"></label>
+                                <select asp-for="State" class="form-select">
+                                    <option value="">-- Select State --</option>
+                                    @foreach (var state in malaysianStates)
+                                    {
+                                        <option value="@state">@state</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="State" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ZipCode" class="form-label"></label>
+                                <input asp-for="ZipCode" class="form-control" />
+                                <span asp-validation-for="ZipCode" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="LicenseNumber" class="form-label"></label>
+                            <input asp-for="LicenseNumber" class="form-control" />
+                            <span asp-validation-for="LicenseNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            @if (User.Identity!.IsAuthenticated && !User.IsInRole("Staff") && !User.IsInRole("Manager"))
+            {
+                <div class="row mt-4">
+                    <div class="col-md-12 mb-4">
+                        <div class="card shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <div class="card-body text-white">
+                                <h4 class="card-title mb-4">
+                                    <i class="fas fa-chart-line"></i> My Statistics
+                                </h4>
+                                <div class="row text-center">
+                                    <div class="col-md-3">
+                                        <div class="mb-2">
+                                            <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                                            <h3 class="mb-1">@totalBookings</h3>
+                                            <small>Total Bookings</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-2">
+                                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                            <h3 class="mb-1">@completedBookings</h3>
+                                            <small>Completed</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-2">
+                                            <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                                            <h3 class="mb-1">RM @totalSpent.ToString("N0")</h3>
+                                            <small>Total Spent</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-2">
+                                            <i class="fas fa-star fa-2x mb-2"></i>
+                                            <h3 class="mb-1">-</h3>
+                                            <small>Average Rating</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 mb-3">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="fas fa-calendar-alt text-primary"></i> My Bookings
+                                </h5>
+                                <p class="card-text">View and manage all your rental bookings</p>
+                                <a asp-controller="Appointments" asp-action="Index" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-right"></i> View Bookings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 mb-3">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="fas fa-credit-card text-success"></i> Payments
+                                </h5>
+                                <p class="card-text">View your payment history and receipts</p>
+                                <a asp-controller="Payments" asp-action="Index" class="btn btn-outline-success">
+                                    <i class="fas fa-arrow-right"></i> View Payments
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 mb-3">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">
+                                    <i class="fas fa-star text-warning"></i> Reviews
+                                </h5>
+                                <p class="card-text">Write and view your vehicle reviews</p>
+                                <a asp-controller="Reviews" asp-action="Index" class="btn btn-outline-warning">
+                                    <i class="fas fa-arrow-right"></i> View Reviews
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Preview image before upload
+        document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = document.querySelector('.profile-picture-container img');
+                    if (img) {
+                        img.src = e.target.result;
+                    } else {
+                        var container = document.querySelector('.profile-picture-container');
+                        container.innerHTML = '<img src="' + e.target.result + '" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 200px; height: 200px; object-fit: cover;" />';
+                    }
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        
+        // 添加卡片 3D 效果到统计数据卡片
+        const statCards = document.querySelectorAll('.card');
+        statCards.forEach(card => {
+            card.classList.add('card-3d');
+        });
+    </script>
+}
+
