@@ -1,0 +1,265 @@
+/* Modern animations and transitions */
+:root {
+    --animation-speed: 0.3s;
+    --animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade in animations */
+.fade-in {
+    opacity: 1; /* Changed: Start visible, animate on scroll */
+    transform: translateY(0);
+    transition: opacity 0.6s var(--animation-easing), 
+                transform 0.6s var(--animation-easing);
+}
+
+/* Only apply hidden state if JavaScript is enabled */
+.js-enabled .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-in.animate-in,
+.js-enabled .fade-in.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Staggered animations */
+.stagger-item {
+    opacity: 1; /* Changed: Start visible */
+    transform: translateY(0);
+}
+
+/* Only apply animation if JavaScript is enabled */
+.js-enabled .stagger-item {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.6s var(--animation-easing) forwards;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.1s; }
+.stagger-item:nth-child(2) { animation-delay: 0.2s; }
+.stagger-item:nth-child(3) { animation-delay: 0.3s; }
+.stagger-item:nth-child(4) { animation-delay: 0.4s; }
+.stagger-item:nth-child(5) { animation-delay: 0.5s; }
+.stagger-item:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pulse animation */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Shimmer loading effect */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 0%,
+        #e0e0e0 20%,
+        #f0f0f0 40%,
+        #f0f0f0 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+}
+
+[data-theme="dark"] .shimmer {
+    background: linear-gradient(
+        90deg,
+        #1f2937 0%,
+        #374151 20%,
+        #1f2937 40%,
+        #1f2937 100%
+    );
+    background-size: 1000px 100%;
+}
+
+/* Smooth hover transitions */
+.hover-lift {
+    transition: transform var(--animation-speed) var(--animation-easing),
+                box-shadow var(--animation-speed) var(--animation-easing);
+}
+
+.hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Gradient animations */
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animated-gradient {
+    background: linear-gradient(-45deg, #3B82F6, #8B5CF6, #EC4899, #F59E0B);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+}
+
+/* Loading spinner */
+.spinner {
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 3px solid var(--primary, #3B82F6);
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Card reveal animation */
+.card-reveal {
+    overflow: hidden;
+    position: relative;
+}
+
+.card-reveal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: left 0.5s;
+}
+
+.card-reveal:hover::before {
+    left: 100%;
+}
+
+/* Counter animation */
+.counter {
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--primary, #3B82F6);
+}
+
+/* Smooth page transitions */
+.page-transition {
+    animation: pageFadeIn 0.4s var(--animation-easing);
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ripple effect */
+.ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.ripple:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Floating animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Slide in from sides */
+.slide-in-left {
+    animation: slideInLeft 0.6s var(--animation-easing);
+}
+
+.slide-in-right {
+    animation: slideInRight 0.6s var(--animation-easing);
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+

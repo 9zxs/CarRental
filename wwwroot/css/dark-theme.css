@@ -1,0 +1,543 @@
+/* Dark theme styles */
+[data-theme="dark"] {
+    --bg-primary: #030712;
+    --bg-secondary: #1f2937;
+    --bg-tertiary: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-muted: #9ca3af;
+    --border-color: #374151;
+    /* Override dark color variable to use light text */
+    --dark: #f9fafb;
+}
+
+[data-theme="dark"] body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Ensure all text elements are visible in dark mode - but exclude white cards/tables */
+[data-theme="dark"] body,
+[data-theme="dark"] p:not(.card p):not(.promotion-card p):not(.promotion-body p):not(.promotion-footer p):not(.booking-body p):not(.subscription-body p):not(.notification-card p):not(.payment-card p):not(.review-card p):not(.favorite-card p):not(.about-card p):not(.service-card p):not(.table p),
+[data-theme="dark"] span:not(.card span):not(.promotion-card span):not(.promotion-body span):not(.promotion-footer span):not(.booking-body span):not(.subscription-body span):not(.notification-card span):not(.payment-card span):not(.review-card span):not(.favorite-card span):not(.about-card span):not(.service-card span):not(.table span):not(.promotion-header span):not(.booking-header span),
+[data-theme="dark"] div:not(.card):not(.promotion-card):not(.promotion-body):not(.promotion-footer):not(.booking-body):not(.subscription-body):not(.notification-card):not(.payment-card):not(.review-card):not(.favorite-card):not(.about-card):not(.service-card):not(.table):not(.card-body),
+[data-theme="dark"] h1:not(.card h1):not(.promotion-card h1):not(.promotion-body h1):not(.promotion-footer h1):not(.booking-body h1):not(.subscription-body h1):not(.notification-card h1):not(.payment-card h1):not(.review-card h1):not(.favorite-card h1):not(.about-card h1):not(.service-card h1):not(.table h1):not(.promotion-header h1),
+[data-theme="dark"] h2:not(.card h2):not(.promotion-card h2):not(.promotion-body h2):not(.promotion-footer h2):not(.booking-body h2):not(.subscription-body h2):not(.notification-card h2):not(.payment-card h2):not(.review-card h2):not(.favorite-card h2):not(.about-card h2):not(.service-card h2):not(.table h2):not(.promotion-header h2),
+[data-theme="dark"] h3:not(.card h3):not(.promotion-card h3):not(.promotion-body h3):not(.promotion-footer h3):not(.booking-body h3):not(.subscription-body h3):not(.notification-card h3):not(.payment-card h3):not(.review-card h3):not(.favorite-card h3):not(.about-card h3):not(.service-card h3):not(.table h3):not(.promotion-header h3),
+[data-theme="dark"] h4:not(.card h4):not(.promotion-card h4):not(.promotion-body h4):not(.promotion-footer h4):not(.booking-body h4):not(.subscription-body h4):not(.notification-card h4):not(.payment-card h4):not(.review-card h4):not(.favorite-card h4):not(.about-card h4):not(.service-card h4):not(.table h4):not(.promotion-header h4),
+[data-theme="dark"] h5:not(.card h5):not(.promotion-card h5):not(.promotion-body h5):not(.promotion-footer h5):not(.booking-body h5):not(.subscription-body h5):not(.notification-card h5):not(.payment-card h5):not(.review-card h5):not(.favorite-card h5):not(.about-card h5):not(.service-card h5):not(.table h5):not(.promotion-header h5),
+[data-theme="dark"] h6:not(.card h6):not(.promotion-card h6):not(.promotion-body h6):not(.promotion-footer h6):not(.booking-body h6):not(.subscription-body h6):not(.notification-card h6):not(.payment-card h6):not(.review-card h6):not(.favorite-card h6):not(.about-card h6):not(.service-card h6):not(.table h6):not(.promotion-header h6),
+[data-theme="dark"] label:not(.card label):not(.promotion-card label):not(.promotion-body label):not(.promotion-footer label):not(.booking-body label):not(.subscription-body label):not(.notification-card label):not(.payment-card label):not(.review-card label):not(.favorite-card label):not(.about-card label):not(.service-card label):not(.table label),
+[data-theme="dark"] li:not(.card li):not(.promotion-card li):not(.promotion-body li):not(.promotion-footer li):not(.booking-body li):not(.subscription-body li):not(.notification-card li):not(.payment-card li):not(.review-card li):not(.favorite-card li):not(.about-card li):not(.service-card li):not(.table li),
+[data-theme="dark"] td:not(.table-light td),
+[data-theme="dark"] th:not(.table-light th) {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-dark,
+[data-theme="dark"] .text-body {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .navbar {
+    background-color: var(--bg-secondary) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .card {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .card-header {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--bg-tertiary);
+    border-color: var(--primary, #135bec);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .alert {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] footer {
+    background-color: var(--bg-secondary) !important;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .navbar-brand,
+[data-theme="dark"] .nav-link,
+[data-theme="dark"] .navbar-text {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .dropdown-header {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-body,
+[data-theme="dark"] .modal-footer {
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .btn-secondary {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .badge {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .breadcrumb {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item a {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .pagination .page-link {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .pagination .page-link:hover {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+    background-color: var(--primary, #135bec) !important;
+    border-color: var(--primary, #135bec) !important;
+}
+
+[data-theme="dark"] main {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Global override to ensure ALL text is visible */
+[data-theme="dark"] html {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+/* Override any white or light text on dark backgrounds */
+[data-theme="dark"] .text-white:not(.hero-section *):not(.subscription-header *):not(.car-preview-card *):not(.price-calculator *):not(.price-section *) {
+    color: var(--text-primary) !important;
+}
+
+/* Ensure button text remains visible */
+[data-theme="dark"] .btn:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-info) {
+    color: var(--text-primary) !important;
+}
+
+/* Price and number displays - MUST override everything */
+[data-theme="dark"] .price,
+[data-theme="dark"] .price-display,
+[data-theme="dark"] .display-1,
+[data-theme="dark"] .display-2,
+[data-theme="dark"] .display-3,
+[data-theme="dark"] .display-4,
+[data-theme="dark"] .display-5,
+[data-theme="dark"] .display-6 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .container,
+[data-theme="dark"] .container-fluid {
+    color: var(--text-primary) !important;
+}
+
+/* Force all text to be visible in dark mode - but exclude white cards/tables */
+[data-theme="dark"] *:not(.card *):not(.table *):not(.table-responsive *):not(.table-light *):not(.stat-card *):not(.chart-card *):not(.table-card *):not(.booking-card *):not(.booking-body *):not(.promotion-card *):not(.promotion-body *):not(.promotion-footer *):not(.subscription-body *):not(.notification-card *):not(.payment-card *):not(.review-card *):not(.favorite-card *):not(.about-card *):not(.service-card *):not(.card-body *):not(.card-header *) {
+    color: inherit;
+}
+
+[data-theme="dark"] .text-light {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .fw-bold,
+[data-theme="dark"] .fw-normal,
+[data-theme="dark"] .fw-light {
+    color: var(--text-primary) !important;
+}
+
+/* Fix subscription plan cards */
+[data-theme="dark"] .subscription-body *,
+[data-theme="dark"] .card-body *,
+[data-theme="dark"] .card-body h3,
+[data-theme="dark"] .card-body h4,
+[data-theme="dark"] .card-body h5,
+[data-theme="dark"] .card-body .h3,
+[data-theme="dark"] .card-body .h4,
+[data-theme="dark"] .card-body .h5 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .subscription-body .price-period {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .card-body p,
+[data-theme="dark"] .card-body .lead,
+[data-theme="dark"] .card-body small {
+    color: var(--text-secondary) !important;
+}
+
+/* Fix pricing display - override ALL possible selectors */
+[data-theme="dark"] .display-4,
+[data-theme="dark"] .display-5,
+[data-theme="dark"] .display-6,
+[data-theme="dark"] .h1,
+[data-theme="dark"] .h2,
+[data-theme="dark"] .h3,
+[data-theme="dark"] .h4,
+[data-theme="dark"] .h5,
+[data-theme="dark"] .h6 {
+    color: var(--text-primary) !important;
+}
+
+/* Fix list items */
+[data-theme="dark"] ul li,
+[data-theme="dark"] ol li {
+    color: var(--text-primary) !important;
+}
+
+/* Fix any remaining text elements */
+[data-theme="dark"] strong,
+[data-theme="dark"] b,
+[data-theme="dark"] em,
+[data-theme="dark"] i {
+    color: inherit !important;
+}
+
+/* Override inline styles that hide text - but preserve header sections */
+[data-theme="dark"] .subscription-body [style*="color:"],
+[data-theme="dark"] .card-body [style*="color:"],
+[data-theme="dark"] main [style*="color:"]:not(.hero-section):not(.subscription-header):not(.car-preview-card):not(.price-calculator):not(.price-section) {
+    color: var(--text-primary) !important;
+}
+
+/* Special handling for price displays with any style attribute */
+[data-theme="dark"] .price-display,
+[data-theme="dark"] .price-display[style],
+[data-theme="dark"] .price-display[style*="color"],
+[data-theme="dark"] .subscription-body .price-display,
+[data-theme="dark"] .subscription-body .price-display[style] {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .price-period,
+[data-theme="dark"] .price-period[style],
+[data-theme="dark"] .price-period[style*="color"],
+[data-theme="dark"] .subscription-body .price-period,
+[data-theme="dark"] .subscription-body .price-period[style] {
+    color: var(--text-secondary) !important;
+}
+
+/* Preserve white text on colored backgrounds */
+[data-theme="dark"] .hero-section,
+[data-theme="dark"] .subscription-header,
+[data-theme="dark"] .car-preview-card,
+[data-theme="dark"] .price-calculator,
+[data-theme="dark"] .price-section {
+    color: white !important;
+}
+
+[data-theme="dark"] .hero-section *,
+[data-theme="dark"] .subscription-header *,
+[data-theme="dark"] .car-preview-card *,
+[data-theme="dark"] .price-calculator *,
+[data-theme="dark"] .price-section * {
+    color: white !important;
+}
+
+/* Ensure links are visible */
+[data-theme="dark"] a:not(.btn):not(.hero-section a):not(.subscription-header a):not(.car-preview-card a):not(.price-calculator a):not(.price-section a) {
+    color: var(--primary-light, #4a7ef5) !important;
+}
+
+[data-theme="dark"] a:not(.btn):hover:not(.hero-section a):not(.subscription-header a) {
+    color: var(--primary, #135bec) !important;
+}
+
+/* Fix badges and labels */
+[data-theme="dark"] .badge:not(.bg-primary):not(.bg-success):not(.bg-danger):not(.bg-warning):not(.bg-info) {
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Fix input placeholders */
+[data-theme="dark"] ::placeholder {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] :-ms-input-placeholder {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] ::-ms-input-placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Override Bootstrap text utility classes in dark mode */
+[data-theme="dark"] .text-dark,
+[data-theme="dark"] .text-black,
+[data-theme="dark"] .text-body {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+/* Ensure headings are visible */
+[data-theme="dark"] h1:not(.hero-section h1):not(.subscription-header h1),
+[data-theme="dark"] h2:not(.hero-section h2):not(.subscription-header h2),
+[data-theme="dark"] h3:not(.hero-section h3):not(.subscription-header h3),
+[data-theme="dark"] h4:not(.hero-section h4):not(.subscription-header h4),
+[data-theme="dark"] h5:not(.hero-section h5):not(.subscription-header h5),
+[data-theme="dark"] h6:not(.hero-section h6):not(.subscription-header h6) {
+    color: var(--text-primary) !important;
+}
+
+/* Links in dark mode */
+[data-theme="dark"] a:not(.btn):not(.nav-link):not(.hero-section a):not(.subscription-header a) {
+    color: var(--primary-light, #4a7ef5) !important;
+}
+
+[data-theme="dark"] a:hover:not(.btn):not(.hero-section a):not(.subscription-header a) {
+    color: var(--primary, #135bec) !important;
+}
+
+/* Card text */
+[data-theme="dark"] .card-body,
+[data-theme="dark"] .card-title,
+[data-theme="dark"] .card-text {
+    color: var(--text-primary) !important;
+}
+
+/* Form labels and text */
+[data-theme="dark"] label,
+[data-theme="dark"] .form-label {
+    color: var(--text-primary) !important;
+}
+
+/* Badge text */
+[data-theme="dark"] .badge:not(.bg-primary):not(.bg-success):not(.bg-danger):not(.bg-warning):not(.bg-info) {
+    color: var(--text-primary) !important;
+    background-color: var(--bg-tertiary) !important;
+}
+
+/* ULTIMATE FIX: Force all text in subscription body and similar containers */
+[data-theme="dark"] .subscription-body *:not(.btn):not(.material-symbols-outlined):not(.hero-section):not(.subscription-header) {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .subscription-body strong,
+[data-theme="dark"] .subscription-body b {
+    color: var(--text-primary) !important;
+}
+
+/* Override CSS variables that use dark colors in dark mode */
+[data-theme="dark"] {
+    --dark: var(--text-primary);
+}
+
+/* Ensure text in all containers is visible - but exclude white cards/tables */
+/* REMOVED: Too aggressive selector causing conflicts - using more specific rules instead */
+
+/* Fix any remaining invisible text - but exclude white cards/tables */
+[data-theme="dark"] .text-center:not(.card .text-center):not(.table .text-center):not(.booking-body .text-center):not(.promotion-card .text-center):not(.promotion-body .text-center):not(.promotion-footer .text-center):not(.subscription-body .text-center):not(.notification-card .text-center):not(.payment-card .text-center):not(.review-card .text-center):not(.favorite-card .text-center):not(.about-card .text-center):not(.service-card .text-center),
+[data-theme="dark"] .text-start:not(.card .text-start):not(.table .text-start),
+[data-theme="dark"] .text-end:not(.card .text-end):not(.table .text-end) {
+    color: var(--text-primary) !important;
+}
+
+/* Override any CSS rules that use var(--dark) in dark mode */
+[data-theme="dark"] [style*="var(--dark)"],
+[data-theme="dark"] .price-display[style*="var(--dark)"] {
+    color: var(--text-primary) !important;
+}
+
+/* CRITICAL: Override ALL hardcoded dark colors that make text invisible */
+[data-theme="dark"] [style*="color: #1f2937"],
+[data-theme="dark"] [style*="color:#1f2937"],
+[data-theme="dark"] [style*="color: #333"],
+[data-theme="dark"] [style*="color:#333"],
+[data-theme="dark"] [style*="color: #000"],
+[data-theme="dark"] [style*="color:#000"],
+[data-theme="dark"] [style*="color: #030712"],
+[data-theme="dark"] [style*="color:#030712"],
+[data-theme="dark"] .date-value,
+[data-theme="dark"] .info-value,
+[data-theme="dark"] .fc-toolbar-title,
+[data-theme="dark"] .counter,
+[data-theme="dark"] .stats-number,
+[data-theme="dark"] .discount-display,
+[data-theme="dark"] .code-input,
+[data-theme="dark"] .service-title,
+[data-theme="dark"] .section-title,
+[data-theme="dark"] .spec-value,
+[data-theme="dark"] .form-input-group label {
+    color: var(--text-primary) !important;
+}
+
+/* Override all elements using color: var(--dark) */
+[data-theme="dark"] *:not(.card):not(.table-responsive):not(.table):not(.table-light):not(.table-light *) {
+    --dark: var(--text-primary) !important;
+}
+
+/* CRITICAL FIX: White cards/containers in dark mode need dark text */
+/* More specific selectors to avoid conflicts */
+[data-theme="dark"] .card.card-3d:not([class*="bg-"]):not([style*="background"]):not(.stat-card):not(.stats-card):not(.review-card):not(.payment-card):not(.notification-card):not(.booking-card):not(.favorite-card):not(.promotion-card):not(.subscription-card):not(.about-card):not(.service-card):not(.car-card):not(.recommendation-card):not(.spec-card),
+[data-theme="dark"] .card:not([class*="bg-"]):not([class*="card-"]):not(.stat-card):not(.stats-card):not(.review-card):not(.payment-card):not(.notification-card):not(.booking-card):not(.favorite-card):not(.promotion-card):not(.subscription-card):not(.about-card):not(.service-card):not(.car-card):not(.recommendation-card):not(.spec-card):not(.promotion-body):not(.subscription-body):not(.booking-body),
+[data-theme="dark"] .table-responsive,
+[data-theme="dark"] .table:not(.table-dark),
+[data-theme="dark"] .table-light,
+[data-theme="dark"] .table-light *,
+[data-theme="dark"] .card-body:has(.table),
+[data-theme="dark"] .card-body:has(.table-light) {
+    background-color: white !important;
+    color: #1f2937 !important;
+}
+
+/* Dark text on white backgrounds in dark mode - More specific to avoid conflicts */
+[data-theme="dark"] .card.card-3d:not([class*="bg-"]):not(.spec-card) *:not(.card-header):not(.card-header *):not(.material-symbols-outlined):not(.btn),
+[data-theme="dark"] .card:not([class*="bg-"]):not([class*="card-"]):not(.spec-card):not(.promotion-card):not(.subscription-card):not(.review-card):not(.payment-card):not(.notification-card):not(.booking-card):not(.favorite-card):not(.about-card):not(.service-card):not(.car-card):not(.recommendation-card):not(.promotion-body):not(.subscription-body):not(.booking-body) *:not(.card-header):not(.card-header *):not(.material-symbols-outlined):not(.btn),
+[data-theme="dark"] .table-light *,
+[data-theme="dark"] .table:not(.table-dark) *,
+[data-theme="dark"] .table-responsive * {
+    color: #1f2937 !important;
+}
+
+/* Empty state text on white backgrounds */
+[data-theme="dark"] .text-center.text-muted:not(.card .text-center.text-muted):not(.table .text-center.text-muted):not(.booking-body .text-center.text-muted):not(.promotion-card .text-center.text-muted):not(.promotion-body .text-center.text-muted):not(.promotion-footer .text-center.text-muted):not(.subscription-body .text-center.text-muted):not(.service-card .text-center.text-muted):not(.car-card .text-center.text-muted):not(.recommendation-card .text-center.text-muted),
+[data-theme="dark"] td.text-center.text-muted,
+[data-theme="dark"] .table td.text-center.text-muted {
+    color: #6b7280 !important;
+}
+
+/* Text muted within white cards should be dark gray */
+[data-theme="dark"] .card .text-muted:not(.card-header .text-muted),
+[data-theme="dark"] .booking-body .text-muted,
+[data-theme="dark"] .promotion-card .text-muted,
+[data-theme="dark"] .promotion-body .text-muted,
+[data-theme="dark"] .promotion-footer .text-muted,
+[data-theme="dark"] .subscription-body .text-muted,
+[data-theme="dark"] .notification-card .text-muted,
+[data-theme="dark"] .payment-card .text-muted,
+[data-theme="dark"] .review-card .text-muted,
+[data-theme="dark"] .favorite-card .text-muted,
+[data-theme="dark"] .about-card .text-muted,
+[data-theme="dark"] .service-card .text-muted,
+[data-theme="dark"] .car-card .text-muted,
+[data-theme="dark"] .recommendation-card .text-muted,
+[data-theme="dark"] .table .text-muted,
+[data-theme="dark"] .table td.text-muted {
+    color: #6b7280 !important;
+}
+
+/* Force all text elements with dark colors to use light text - but exclude white card children */
+[data-theme="dark"] h1[style*="color"]:not(.card h1):not(.table h1),
+[data-theme="dark"] h2[style*="color"]:not(.card h2):not(.table h2),
+[data-theme="dark"] h3[style*="color"]:not(.card h3):not(.table h3),
+[data-theme="dark"] h4[style*="color"]:not(.card h4):not(.table h4),
+[data-theme="dark"] h5[style*="color"]:not(.card h5):not(.table h5),
+[data-theme="dark"] h6[style*="color"]:not(.card h6):not(.table h6),
+[data-theme="dark"] p[style*="color"]:not(.card p):not(.table p),
+[data-theme="dark"] span[style*="color"]:not(.card span):not(.table span),
+[data-theme="dark"] div[style*="color"]:not(.card div):not(.table div),
+[data-theme="dark"] label[style*="color"]:not(.card label):not(.table label) {
+    color: var(--text-primary) !important;
+}
+
+/* Exception: Keep white text on colored backgrounds */
+[data-theme="dark"] .hero-section [style*="color"],
+[data-theme="dark"] .price-section [style*="color"],
+[data-theme="dark"] .subscription-header [style*="color"] {
+    color: white !important;
+}
